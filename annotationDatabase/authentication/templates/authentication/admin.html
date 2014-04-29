@@ -1,0 +1,91 @@
+<html>
+  <head>
+    <title>User Admin</title>
+    <style type="text/css">
+      tr.odd {
+        background: #eee;
+        padding-left: 20px;
+        padding-right: 20px;
+      }
+
+      tr.even {
+        background: #eef;
+        padding-left: 20px;
+        padding-right: 20px;
+      }
+
+      td.border-l {
+        border-left: 1px solid black;
+      }
+
+      td.border-t {
+        border-top: 1px solid black;
+      }
+
+      td.border-r {
+        border-right: 1px solid black;
+      }
+
+      td.border-b {
+        border-bottom: 1px solid black;
+      }
+    </style>
+  </head>
+  <body>
+    <div style="font-size:18pt; font-weight:bold">User Admin</div>
+    <table border="0" cellspacing="0" cellpadding="5"
+           style="border-collapse:collapse">
+      <tr>
+        <td class="border-b"></td>
+        <td class="border-b"></td>
+        <td class="border-b"></td>
+        <td class="border-b"></td>
+      </tr>
+{% for user in users %}
+      <tr class="{% cycle 'odd' 'even' %}">
+        <td class="border-l" nowrap>
+          {{ user.username }}
+        </td>
+        <td nowrap>
+          {{ user.type }}
+        </td>
+        <td nowrap>
+          <button onclick='document.location="{{ edit_url }}/{{ user.id }}"'>
+            Edit
+          </button>
+        </td>
+        <td class="border-r" nowrap>
+  {% if user.username != cur_username %}
+          <button onclick='document.location="{{ delete_url }}/{{ user.id }}"'>
+            Delete
+          </button>
+  {% else %}
+          <button disabled>
+            Delete
+          </button>
+  {% endif %}
+        </td>
+      </tr>
+{% endfor %}
+      <tr>
+        <td colspan="4" class="border-t" style="padding-top:10px" nowrap>
+          <table border="0" cellspacing="0" cellpadding="0" width="100%">
+            <tr>
+              <td align="left" nowrap>
+                &nbsp;
+                <button onclick='document.location="{{ add_url }}"'>
+                  Add User
+                </button>
+              </td>
+              <td align="right" nowrap>
+                <button onclick='document.location="{{ finished_url }}"'>
+                  Finished
+                </button>
+                &nbsp;
+              </td>
+            </tr>
+          </table>
+        </td>
+    </table>
+  </body>
+</html>

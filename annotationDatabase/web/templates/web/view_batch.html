@@ -1,0 +1,116 @@
+{% extends "boxUI/boxUI.html" %}
+{% load boxUI_tags %}
+
+{% block config %}
+  {% set title         = "Ripple Annotation Database" %}
+  {% set dialog_width  = 530 %}
+  {% set dialog_height = 460 %}
+  {% set header_height = 32 %}
+  {% set footer_height = 40 %}
+{% endblock %}
+
+{% block page_head %}
+  <style type="text/css">
+    a:link, a:visited, a:active, a:hover {
+      text-decoration: none;
+      color: #2f2f8f;
+    }
+    td.label {
+      text-align: center;
+      font-weight: bold;
+      font-size: smaller;
+    }
+    td.value {
+      text-align: left;
+      font-size: smaller;
+    }
+  </style>
+{% endblock %}
+
+{% block header %}
+  <div class="centre" style="font-weight:bold; margin-top:4px">
+    Annotation Batch
+  </div>
+{% endblock %}
+
+{% block dialog_prefix %}
+ <form method="POST">
+   {% csrf_token %}
+{% endblock %}
+
+{% block dialog_suffix %}
+  </form>
+{% endblock %}
+
+{% block contents %}
+  <div style="overflow:auto; width:520px; height:400px">
+    <table border="0" cellspacing="0" cellpadding="5" style="margin-left:20px">
+      <tr>
+        <td nowrap class="label white_text">
+          Account
+        </td>
+        <td nowrap class="label white_text">
+          Annotation
+        </td>
+        <td nowrap class="label white_text">
+          Value
+        </td>
+        <td nowrap class="label white_text">
+          Hidden?
+        </td>
+        <td nowrap class="label white_text">
+          Hidden At
+        </td>
+        <td nowrap class="label white_text">
+          Hidden By
+        </td>
+        <td nowrap class="label white_text">
+          &nbsp;
+        </td>
+      </tr>
+  {% for annotation in annotations %}
+      <tr>
+        <td nowrap class="value white_text">
+          {{ annotation.account }}
+        </td>
+        <td nowrap class="value white_text">
+          {{ annotation.key }}
+        </td>
+        <td nowrap class="value white_text">
+          {{ annotation.value }}
+        </td>
+        <td nowrap class="value white_text">
+    {% if annotation.hidden %}
+          Yes
+    {% else %}
+          No
+    {% endif %}
+        </td>
+        <td nowrap class="value white_text">
+    {% if annotation.hidden %}
+          {{ annotation.hidden_at|date }} {{ annotation.hidden_at|time }}
+    {% endif %}
+        </td>
+        <td nowrap class="value white_text">
+    {% if annotation.hidden %}
+          {{ annotation.hidden_by }}
+    {% endif %}
+        </td>
+        <td nowrap class="value">
+    {% if not annotation.hidden %}
+          <input type="submit" name="hide-{{ forloop.counter0 }}"
+                 value="Hide">
+    {% endif %}
+        </td>
+      </tr>
+  {% endfor %}
+    </table>
+  </div>
+{% endblock %}
+
+{% block footer %}
+  <div style="width:530px; height:40px; margin-top:8px">
+    <input type="submit" name="submit" value="Done"/>
+  </div>
+{% endblock %}
+

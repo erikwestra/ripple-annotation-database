@@ -1,0 +1,21 @@
+<html>
+  <head>
+    <title>Delete User</title>
+  </head>
+  <body>
+    <p/>
+    <div style="margin-left: 30px">
+      <h3>Delete User</h3>
+      <form method="POST">
+        {% csrf_token %}
+        Are you sure you want to delete user &ldquo;{{ username }}&rdquo;?
+        <p/>
+        <blockquote>
+          <button type="submit" name="confirm" value="1">OK</button>
+          &nbsp;
+          <button type="submit" name="confirm" value="0">Cancel</button>
+        </blockquote>
+      </form>
+    </div>
+  </body>
+</html>

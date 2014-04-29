@@ -1,4 +1,4 @@
-rippple-annotation-database
+ripple-annotation-database
 ===========================
 
-Python impementation of the Ripple Annotation Database
+Python implementation of the Ripple Annotation Database.

@@ -1,0 +1,124 @@
+{% load boxUI_tags %}
+
+{% block config %}
+{% endblock %}
+
+<html>
+  <head>
+    <title>{% get title %}</title>
+    <style type="text/css">
+      body {
+        font-family: serif;
+        background: #e0e0ff;
+      }
+
+      input {
+        font-family: sans-serif;
+        font-size: small;
+      }
+
+      div.dialog_box {
+        width: {% get dialog_width %}px;
+        height: {% get dialog_height %}px;
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        margin: -{% get_half dialog_height %}px 0 0 -{% get_half dialog_width %}px;
+        border: 1px solid black;
+        background: #446998;
+        border-radius: 15px;
+      }
+
+      div.inner_box {
+        position: relative;
+        width: {% get dialog_width %}px;
+        height: {% get dialog_height %}px;
+        background: #446998;
+        border-radius: 15px;
+        color: #ffffff;
+      }
+
+      div.header {
+        position: absolute;
+        width: {% get dialog_width %}px;
+        height: {% get header_height %}px;
+        top: 0px;
+        font-size: 18pt;
+        font-weight: bold;
+        border-top-left-radius: 15px;
+        border-top-right-radius: 15px;
+        background: #446998;
+      }
+
+      div.contents {
+        background: #446998;
+        padding-top: {% get header_height %}px;
+        border-top-left-radius: 15px;
+        border-top-right-radius: 15px;
+      }
+
+      div.footer {
+        position: absolute;
+        width: {% get dialog_width %}px;
+        height: {% get footer_height %}px;
+        bottom: 0px;
+        background: #446998;
+        border-bottom-left-radius: 15px;
+        border-bottom-right-radius: 15px;
+      }
+
+      .white_text {
+        color: #ffffff;
+      }
+
+      div.left {
+        text-align: left;
+      }
+
+      div.right {
+        text-align: right;
+      }
+
+      div.centre {
+        text-align: center;
+      }
+    </style>
+
+    {% block page_head %}
+    {% endblock %}
+
+  </head>
+  <body>
+
+    {% block dialog_prefix %}
+    {% endblock %}
+
+    <div class="dialog_box">
+      <div class="inner_box">
+        <div class="header centre white_text">
+
+          {% block header %}
+          {% endblock %}
+
+        </div>
+        <div class="contents white_text">
+
+          {% block contents %}
+          {% endblock %}
+
+        </div>
+        <div class="footer centre">
+
+          {% block footer %}
+          {% endblock %}
+
+        </div>
+      </div>
+    </div>
+
+    {% block dialog_suffix %}
+    {% endblock %}
+
+  </body>
+</html>
+

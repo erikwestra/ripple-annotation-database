@@ -1,0 +1,81 @@
+<html>
+  <head>
+    <title>{{ title }}</title>
+    <style type="text/css">
+    </style>
+    <script type="text/javascript">
+      window.onload = function() {
+        // Move the cursor to the "username" field when the page loads.
+        var field = document.getElementById("username");
+        field.focus();
+        field.select();
+      }
+    </script>
+  </head>
+  <body>
+    <form method="post">
+      {% csrf_token %}
+      <h3>{{ heading }}</h3>
+      <table border="0" cellspacing="0" cellpadding="5"
+             style="margin-left: 20px">
+        <tr>
+          <td align="right" nowrap>
+            username:
+          </td>
+          <td align="left">
+            <input type="text" id="username"
+                   name="username" value="{{ username }}"/>
+          </td>
+        </tr>
+        <tr>
+          <td align="right" nowrap>
+            type:
+          </td>
+          <td align="left">
+            <select name="user_type"
+                    size="1"{% if not can_set_type %} disabled{% endif %}>
+{% for type in user_types %}
+              <option value="{{ type }}"{% if type == user_type %} selected{% endif %}>{{ type }}</option>
+{% endfor %}
+            </select>
+          </td>
+        </tr>
+        <tr>
+          <td align="right" nowrap>
+            password:
+          </td>
+          <td align="left">
+            <input type="password" name="password_1"/>
+          </td>
+        </tr>
+        <tr>
+          <td align="right" nowrap>
+            re-enter password:
+          </td>
+          <td align="left">
+            <input type="password" name="password_2"/>
+          </td>
+        </tr>
+{% if err_msg %}
+        <tr>
+          <td colspan="2" align="center">
+            <span style="font-weight:bold; font-size:small; color:red">
+              {{ err_msg }}
+            </span>
+          </td>
+        </tr>
+{% endif %}
+        <tr>
+          <td align="left" style="padding-top:10px" nowrap>
+            &nbsp;
+            <input type="submit" name="submit" value="Submit"/>
+          </td>
+          <td align="right" style="padding-top:10px" nowrap>
+            <input type="submit" name="cancel" value="Cancel"/>
+            &nbsp;
+          </td>
+        </tr>
+      </table>
+    </form>
+  </body>
+</html>
