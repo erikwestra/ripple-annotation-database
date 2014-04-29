@@ -96,6 +96,10 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    # Enable CORS support.
+
+    "annotationDatabase.middleware.cors.CORSMiddleware",
 )
 
 ROOT_URLCONF = 'annotationDatabase.urls'
