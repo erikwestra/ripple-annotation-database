@@ -9,7 +9,7 @@ import django.test
 
 from annotationDatabase.shared.models import *
 
-from annotationDatabase.api import functions
+from annotationDatabase.api import functions, helpers
 
 #############################################################################
 
@@ -19,7 +19,10 @@ class AddTestCase(django.test.TestCase):
     def test_add_in_body(self):
         """ Test the "/add" endpoint with a batch in the body of the request.
         """
+        auth_token = helpers.get_auth_token_for_testing()
+
         batch = {'user_id'     : "erik",
+                 'auth_token'  : auth_token,
                  'annotations' : [
                      dict(account="r123", key="owner", value="erik"),
                      dict(account="r124", key="owner", value="erik")
@@ -41,7 +44,10 @@ class AddTestCase(django.test.TestCase):
     def test_add_query_params(self):
         """ Test the "/add" endpoint with a batch in a query parameter.
         """
+        auth_token = helpers.get_auth_token_for_testing()
+
         batch = {'user_id'     : "erik",
+                 'auth_token'  : auth_token,
                  'annotations' : [
                      dict(account="r123", key="owner", value="erik"),
                      dict(account="r124", key="owner", value="erik")
@@ -70,6 +76,8 @@ class HideTestCase(django.test.TestCase):
     def test_hide(self):
         """ Test the "/hide" endpoint.
         """
+        auth_token = helpers.get_auth_token_for_testing()
+
         batch = {'user_id'     : "erik",
                  'annotations' : [
                      dict(account="r123", key="owner", value="erik"),
@@ -82,9 +90,10 @@ class HideTestCase(django.test.TestCase):
             self.fail(response['error'])
         batch_num = response['batch_num']
 
-        response = self.client.get("/hide", data={'user_id'   : "erik",
-                                                  'batch_num' : batch_num,
-                                                  'account'   : "r123"})
+        response = self.client.get("/hide", data={'user_id'    : "erik",
+                                                  'auth_token' : auth_token,
+                                                  'batch_num'  : batch_num,
+                                                  'account'    : "r123"})
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['Content-Type'], "application/json")
@@ -114,6 +123,8 @@ class ListTestCase(django.test.TestCase):
     def test_list(self):
         """ Test the "/list" endpoint.
         """
+        auth_token = helpers.get_auth_token_for_testing()
+
         batch = {'user_id'     : "erik",
                  'annotations' : [
                      dict(account="r123", key="owner", value="erik"),
@@ -126,7 +137,9 @@ class ListTestCase(django.test.TestCase):
             self.fail(response['error'])
         batch_num = response['batch_num']
 
-        response = self.client.get("/list", data={'page' : 1, 'rpp' : 100})
+        response = self.client.get("/list", data={'auth_token' : auth_token,
+                                                  'page'       : 1,
+                                                  'rpp'        : 100})
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['Content-Type'], "application/json")
@@ -154,6 +167,8 @@ class GetTestCase(django.test.TestCase):
     def test_get(self):
         """ Test the "/get" endpoint.
         """
+        auth_token = helpers.get_auth_token_for_testing()
+
         batch = {'user_id'     : "erik",
                  'annotations' : [
                      dict(account="r123", key="owner", value="erik"),
@@ -166,7 +181,8 @@ class GetTestCase(django.test.TestCase):
             self.fail(response['error'])
         batch_num = response['batch_num']
 
-        response = self.client.get("/get/%d" % batch_num)
+        response = self.client.get("/get/%d" % batch_num,
+                                   data={'auth_token' : auth_token})
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['Content-Type'], "application/json")
@@ -190,6 +206,8 @@ class AccountsTestCase(django.test.TestCase):
     def test_accounts(self):
         """ Test the "/accounts" endpoint.
         """
+        auth_token = helpers.get_auth_token_for_testing()
+
         batch = {'user_id'     : "erik",
                  'annotations' : [
                      dict(account="r123", key="owner", value="erik"),
@@ -201,15 +219,18 @@ class AccountsTestCase(django.test.TestCase):
         if not response['success']:
             self.fail(response['error'])
 
-        response = self.client.get("/accounts", data={'page' : 1,
-                                                      'rpp'  : 1000})
+        response = self.client.get("/accounts",
+                                   data={'auth_token' : auth_token,
+                                         'page'       : 1,
+                                         'rpp'        : 1000})
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['Content-Type'], "application/json")
 
         response = json.loads(response.content)
 
-        self.assertItemsEqual(response.keys(), ['success', 'accounts'])
+        self.assertItemsEqual(response.keys(),
+                              ['success', 'num_pages', 'accounts'])
         if not response['success']:
             self.fail(response['error'])
 
@@ -224,6 +245,8 @@ class AccountTestCase(django.test.TestCase):
     def test_account(self):
         """ Test the "/account" endpoint.
         """
+        auth_token = helpers.get_auth_token_for_testing()
+
         batch = {'user_id'     : "erik",
                  'annotations' : [
                      dict(account="r123", key="owner", value="erik"),
@@ -235,7 +258,8 @@ class AccountTestCase(django.test.TestCase):
         if not response['success']:
             self.fail(response['error'])
 
-        response = self.client.get("/account/r123")
+        response = self.client.get("/account/r123",
+                                   data={'auth_token' : auth_token})
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['Content-Type'], "application/json")
@@ -262,6 +286,8 @@ class AccountHistoryTestCase(django.test.TestCase):
     def test_account_history(self):
         """ Test the "/account_history" endpoint.
         """
+        auth_token = helpers.get_auth_token_for_testing()
+
         batch = {'user_id'     : "erik",
                  'annotations' : [
                      dict(account="r123", key="owner", value="erik"),
@@ -282,7 +308,8 @@ class AccountHistoryTestCase(django.test.TestCase):
         if not response['success']:
             self.fail(response['error'])
 
-        response = self.client.get("/account_history/r123")
+        response = self.client.get("/account_history/r123",
+                                   data={'auth_token' : auth_token})
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['Content-Type'], "application/json")
@@ -310,6 +337,8 @@ class SearchTestCase(django.test.TestCase):
     def test_search(self):
         """ Test the "/search" endpoint.
         """
+        auth_token = helpers.get_auth_token_for_testing()
+
         batch = {'user_id'     : "erik",
                  'annotations' : [
                      dict(account="r123", key="owner", value="erik"),
@@ -321,7 +350,9 @@ class SearchTestCase(django.test.TestCase):
         if not response['success']:
             self.fail(response['error'])
 
-        response = self.client.get("/search?owner=erik")
+        response = self.client.get("/search",
+                                   data={'auth_token' : auth_token,
+                                         'owner'      : "erik"})
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['Content-Type'], "application/json")

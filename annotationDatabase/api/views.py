@@ -10,7 +10,7 @@ from django.http import HttpResponse, HttpResponseNotAllowed
 
 import simplejson as json
 
-from annotationDatabase.api import functions
+from annotationDatabase.api import functions, helpers
 
 #############################################################################
 
@@ -43,6 +43,12 @@ def add(request):
                                         'error'   : 'Invalid JSON data'}),
                             content_type="application/json")
 
+    if not helpers.auth_token_valid(batch.get("auth_token")):
+        return HttpResponse(json.dumps({'success' : False,
+                                        'error'   : 'Invalid or missing ' +
+                                                    'authentication token'}),
+                            content_type="application/json")
+
     response = functions.add(batch)
 
     return HttpResponse(json.dumps(response), content_type="application/json")
@@ -58,6 +64,12 @@ def hide(request):
         params = request.POST
     else:
         return HttpResponseNotAllowed(["GET", "POST"])
+
+    if not helpers.auth_token_valid(params.get("auth_token")):
+        return HttpResponse(json.dumps({'success' : False,
+                                        'error'   : 'Invalid or missing ' +
+                                                    'authentication token'}),
+                            content_type="application/json")
 
     if "user_id" not in params:
         return HttpResponse(json.dumps({'success' : False,
@@ -94,6 +106,12 @@ def list(request):
     else:
         return HttpResponseNotAllowed(["GET", "POST"])
 
+    if not helpers.auth_token_valid(params.get("auth_token")):
+        return HttpResponse(json.dumps({'success' : False,
+                                        'error'   : 'Invalid or missing ' +
+                                                    'authentication token'}),
+                            content_type="application/json")
+
     page = params.get("page", 1)
     rpp  = params.get("rpp",  100)
 
@@ -106,6 +124,19 @@ def list(request):
 def get(request, batch_number):
     """ Respond to the "/get/{batch_number}" URL.
     """
+    if request.method == "GET":
+        params = request.GET
+    elif request.method == "POST":
+        params = request.POST
+    else:
+        return HttpResponseNotAllowed(["GET", "POST"])
+
+    if not helpers.auth_token_valid(params.get("auth_token")):
+        return HttpResponse(json.dumps({'success' : False,
+                                        'error'   : 'Invalid or missing ' +
+                                                    'authentication token'}),
+                            content_type="application/json")
+
     response = functions.get(batch_number)
     return HttpResponse(json.dumps(response), content_type="application/json")
 
@@ -121,6 +152,12 @@ def accounts(request):
     else:
         return HttpResponseNotAllowed(["GET", "POST"])
 
+    if not helpers.auth_token_valid(params.get("auth_token")):
+        return HttpResponse(json.dumps({'success' : False,
+                                        'error'   : 'Invalid or missing ' +
+                                                    'authentication token'}),
+                            content_type="application/json")
+
     page = params.get("page", 1)
     rpp  = params.get("rpp",  100)
 
@@ -132,7 +169,21 @@ def accounts(request):
 def account(request, account):
     """ Respond to the "/account/{account}" URL.
     """
+    if request.method == "GET":
+        params = request.GET
+    elif request.method == "POST":
+        params = request.POST
+    else:
+        return HttpResponseNotAllowed(["GET", "POST"])
+
+    if not helpers.auth_token_valid(params.get("auth_token")):
+        return HttpResponse(json.dumps({'success' : False,
+                                        'error'   : 'Invalid or missing ' +
+                                                    'authentication token'}),
+                            content_type="application/json")
+
     response = functions.account(account)
+
     return HttpResponse(json.dumps(response), content_type="application/json")
 
 #############################################################################
@@ -140,7 +191,21 @@ def account(request, account):
 def account_history(request, account):
     """ Respond to the "/account_history/{account}" URL.
     """
+    if request.method == "GET":
+        params = request.GET
+    elif request.method == "POST":
+        params = request.POST
+    else:
+        return HttpResponseNotAllowed(["GET", "POST"])
+
+    if not helpers.auth_token_valid(params.get("auth_token")):
+        return HttpResponse(json.dumps({'success' : False,
+                                        'error'   : 'Invalid or missing ' +
+                                                    'authentication token'}),
+                            content_type="application/json")
+
     response = functions.account_history(account)
+
     return HttpResponse(json.dumps(response), content_type="application/json")
 
 #############################################################################
@@ -155,16 +220,17 @@ def search(request):
     else:
         return HttpResponseNotAllowed(["GET", "POST"])
 
-    if len(params) > 3:
+    if not helpers.auth_token_valid(params.get("auth_token")):
         return HttpResponse(json.dumps({'success' : False,
-                                        'error'   : 'Too many search criteria'
-                                       }),
+                                        'error'   : 'Invalid or missing ' +
+                                                    'authentication token'}),
                             content_type="application/json")
 
     criteria = []
     for key in params.keys():
-        value = params[key]
-        criteria.append([key, value])
+        if key != "auth_token":
+            value = params[key]
+            criteria.append([key, value])
 
     response = functions.search(criteria)
     return HttpResponse(json.dumps(response), content_type="application/json")

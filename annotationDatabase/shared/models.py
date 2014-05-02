@@ -45,3 +45,12 @@ class Annotation(models.Model):
     hidden_at = models.DateTimeField(null=True)
     hidden_by = models.TextField(null=True)
 
+#############################################################################
+
+class Client(models.Model):
+    """ A client system authorized to use the Annotation Database.
+    """
+    id         = models.AutoField(primary_key=True)
+    name       = models.TextField(unique=True, db_index=True)
+    auth_token = models.TextField(unique=True, db_index=True)
+

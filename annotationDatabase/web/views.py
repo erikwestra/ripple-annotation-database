@@ -4,6 +4,7 @@
     Database's "web" application.
 """
 import datetime
+import uuid
 
 import xlrd
 
@@ -35,6 +36,8 @@ def main(request):
     if auth_controller.is_admin(request):
         options.append(["Add/Edit Users",
                         auth_controller.get_user_admin_url()])
+    options.append(["Add/Edit Client Systems", "/web/clients"])
+
     options.append(["Change Password",
                     auth_controller.get_change_password_url()])
     options.append(["Log Out", auth_controller.get_logout_url()])
@@ -111,8 +114,8 @@ def add(request):
         elif request.POST['submit'] == "Cancel":
             return HttpResponseRedirect("/web")
 
-    return render(request, "web/add.html", {'data'    : data,
-                                            'err_msg' : err_msg})
+    return render(request, "web/add_annotations.html", {'data'    : data,
+                                                        'err_msg' : err_msg})
 
 #############################################################################
 
@@ -575,4 +578,180 @@ def search_results(request):
                    'page'      : page,
                    'num_pages' : paginator.num_pages,
                    'accounts'  : accounts})
+
+#############################################################################
+
+def view_clients(request):
+    """ Respond to the "/web/clients" URL.
+    """
+    if not auth_controller.is_logged_in(request):
+        return auth_controller.redirect_to_login()
+
+    if request.method == "GET":
+        params = request.GET
+    elif request.method == "POST":
+        params = request.POST
+    else:
+        return HttpResponse("Bad HTTP Method")
+
+    page = int(params.get("page", "1"))
+
+    all_clients = Client.objects.all().order_by("name")
+
+    paginator = Paginator(all_clients, 20)
+
+    try:
+        clients = paginator.page(page)
+    except PageNotAnInteger:
+        clients = paginator.page(1)
+    except EmptyPage:
+        clients = []
+
+    if request.method == "POST":
+        if request.POST['submit'] == "Done":
+            return HttpResponseRedirect("/web")
+        elif request.POST['submit'] == "Add":
+            return HttpResponseRedirect("/web/clients/add")
+
+    return render(request, "web/view_clients.html",
+                  {'page'      : page,
+                   'num_pages' : paginator.num_pages,
+                   'clients'   : clients})
+
+#############################################################################
+
+def add_client(request):
+    """ Respond to the "/web/clients/add" URL.
+    """
+    if not auth_controller.is_logged_in(request):
+        return auth_controller.redirect_to_login()
+
+    if request.method == "GET":
+        # This is the first time we've displayed this page -> prepare our CGI
+        # parameters.
+        name    = ""
+        err_msg = None
+    elif request.method == "POST":
+        if request.POST['submit'] == "OK":
+            # The user is attempting to submit the form -> extract our CGI
+            # parameters and create the new client.
+
+            err_msg = None # initially.
+
+            name = request.POST.get("name")
+            if name in ["", None]:
+                err_msg = "You must enter a name for this client."
+
+            if err_msg == None:
+                try:
+                    existing_client = Client.objects.get(name=name)
+                except Client.DoesNotExist:
+                    existing_client = None
+
+                if existing_client != None:
+                    err_msg = "There is already a client with that name."
+
+            if err_msg == None:
+                # The entered data is acceptable -> create the new client.
+                client = Client()
+                client.name       = name
+                client.auth_token = uuid.uuid4().hex
+                client.save()
+
+                # Return the caller back to the "list clients" view.
+
+                return HttpResponseRedirect("/web/clients")
+        elif request.POST['submit'] == "Cancel":
+            return HttpResponseRedirect("/web/clients")
+
+    # If we get here, we're going to display the "Add Client" page.  Do so.
+
+    return render(request, "web/edit_client.html",
+                  {'heading' : "Add Client System",
+                   'name'    : name,
+                   'err_msg' : err_msg})
+
+#############################################################################
+
+def edit_client(request, client_id):
+    """ Respond to the "/web/clients/edit/XXX" URL.
+    """
+    if not auth_controller.is_logged_in(request):
+        return auth_controller.redirect_to_login()
+
+    try:
+        client = Client.objects.get(id=client_id)
+    except Client.DoesNotExist:
+        return HttpResponseRedirect("/web/clients") # Should never happen.
+
+    if request.method == "GET":
+        # This is the first time we've displayed this page -> prepare our CGI
+        # parameters.
+        name    = client.name
+        err_msg = None
+    elif request.method == "POST":
+        if request.POST['submit'] == "OK":
+            # The user is attempting to submit the form -> extract our CGI
+            # parameters and create the new client.
+
+            err_msg = None # initially.
+
+            name = request.POST.get("name")
+            if name in ["", None]:
+                err_msg = "You must enter a name for this client."
+
+            if err_msg == None:
+                try:
+                    existing_client = Client.objects.get(name=name)
+                except Client.DoesNotExist:
+                    existing_client = None
+
+                if existing_client != None and existing_client != client:
+                    err_msg = "There is already another client with that name."
+
+            if err_msg == None:
+                # The entered data is acceptable -> update the new client.
+                client.name = name
+                client.save()
+
+                # Return the caller back to the "list clients" view.
+
+                return HttpResponseRedirect("/web/clients")
+        elif request.POST['submit'] == "Cancel":
+            return HttpResponseRedirect("/web/clients")
+
+    # If we get here, we're going to display the "Edit Client" page.  Do so.
+
+    return render(request, "web/edit_client.html",
+                  {'heading' : "Edit Client System",
+                   'name'    : name,
+                   'err_msg' : err_msg})
+
+#############################################################################
+
+def delete_client(request, client_id):
+    """ Respond to the "/web/clients/delete/XXX" URL.
+    """
+    if not auth_controller.is_logged_in(request):
+        return auth_controller.redirect_to_login()
+
+    try:
+        client = Client.objects.get(id=client_id)
+    except Client.DoesNotExist:
+        return HttpResponseRedirect("/web/clients") # Should never happen.
+
+    if request.method == "POST":
+        if request.POST['submit'] == "Delete":
+            # The user confirmed -> delete the client.
+            client.delete()
+
+        return HttpResponseRedirect("/web/clients")
+
+    # Display the confirmation dialog.
+
+    return render(request, "web/confirm.html",
+                  {'heading'  : "Delete Client System",
+                   'message'  : 'Are you sure you want to delete the "' +
+                                client.name + '" client?',
+                   'btn_name' : "Delete"})
 

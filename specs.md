@@ -10,6 +10,12 @@ Note that the web interface only acts as a "front end" to the API -- there is
 no functionality in the web interface which cannot be accessed via the API
 directly.
 
+Because the Annotation Database may store sensitive information, the API and
+web interface are both protected.  API clients need to be authorized and issued
+with an _authentication token_ which must be used whenever the API is called.
+Similarly, users accessing the web interface must have a valid username and
+password.
+
 
 ## Concepts ##
 
@@ -90,6 +96,10 @@ The Ripple Annotation API currently supports the following endpoints:
 > > > 
 > > > > A string identifying the user who is uploading this batch.
 > > > 
+> > > `auth_token` _(required)_
+> > > 
+> > > > The calling system's authentication token.
+> > > 
 > > > `annotations` _(required)_
 > > > 
 > > > > An array of annotations to be submitted.  Each array entry should be an
@@ -141,6 +151,10 @@ The Ripple Annotation API currently supports the following endpoints:
 > > > `user_id` _(required)_
 > > > 
 > > > > A string identifying the user who is hiding these annotations.
+> > > 
+> > > `auth_token` _(required)_
+> > > 
+> > > > The calling system's authentication token.
 > > > 
 > > > `batch_num` _(required)_
 > > > 
@@ -199,13 +213,17 @@ The Ripple Annotation API currently supports the following endpoints:
 > > 
 > > This API takes the following query-string parameters:
 > > 
-> > > `page`
+> > > `auth_token` _(required)_
+> > > 
+> > > > The calling system's authentication token.
+> > > 
+> > > `page` _(optional)_
 > > > 
 > > > > Which page of results to return.  By default, we return page 1, which
 > > > > is the most recent `rpp` batches.  Increasing page numbers will return
 > > > > lists of batches going further back in time.
 > > > 
-> > > `rpp`
+> > > `rpp` _(optional)_
 > > > 
 > > > > The number of results to return per page.  By default, we return a
 > > > > maximum of 100 batches in each page of results.
@@ -258,6 +276,13 @@ The Ripple Annotation API currently supports the following endpoints:
 > > Return the contents of a single uploaded annotation batch.
 > > 
 > > Note that the desired batch number is included as part of the URL itself.
+> > 
+> > The following query string parameter must be included with this request:
+> > 
+> > > `auth_token` _(required)_
+> > > 
+> > > > The calling system's authentication token.
+> > 
 > > Upon completion, the server will return an HTTP status code of `200` (OK),
 > > and the body of the response will have a content-type value of
 > > `application/json`.  The body of the response will consist of a JSON object
@@ -324,13 +349,17 @@ The Ripple Annotation API currently supports the following endpoints:
 > > 
 > > This API takes the following query-string parameters:
 > > 
-> > > `page`
+> > > `auth_token` _(required)_
+> > > 
+> > > > The calling system's authentication token.
+> > 
+> > > `page` _(optional)_
 > > > 
 > > > > Which page of results to return.  By default, we return page 1, which
 > > > > is the first page of accounts.  Increasing page numbers will return
 > > > > more accounts, ascending in alphabetical order.
 > > > 
-> > > `rpp`
+> > > `rpp` _(optional)_
 > > > 
 > > > > The number of results to return per page.  By default, we return a
 > > > > maximum of 1000 accounts in each page of results.
@@ -370,6 +399,12 @@ The Ripple Annotation API currently supports the following endpoints:
 > > 
 > > Note that the address of the desired Ripple account is included as part of
 > > the URL itself.
+> > 
+> > The following query string parameter must be supplied:
+> > 
+> > > `auth_token` _(required)_
+> > > 
+> > > > The calling system's authentication token.
 > > 
 > > Upon completion, the server will return an HTTP status code of `200` (OK),
 > > and the body of the response will have a content-type value of
@@ -411,6 +446,12 @@ The Ripple Annotation API currently supports the following endpoints:
 > > 
 > > Note that the address of the desired Ripple account is included as part of
 > > the URL itself.
+> > 
+> > The following query string parameter must be supplied:
+> > 
+> > > `auth_token` _(required)_
+> > > 
+> > > > The calling system's authentication token.
 > > 
 > > Upon completion, the server will return an HTTP status code of `200` (OK),
 > > and the body of the response will have a content-type value of
@@ -488,10 +529,17 @@ The Ripple Annotation API currently supports the following endpoints:
 > 
 > > Search for accounts which match the given set of query parameters.
 > > 
-> > Any supplied query string parameters are used to search for accounts which
-> > have the given annotation value.  For example, the following API call:
+> > The following query string parameter must be supplied:
 > > 
-> > > `/search?primary=RL&secondary=CST`
+> > > `auth_token` _(required)_
+> > > 
+> > > > The calling system's authentication token.
+> > 
+> > Any additional query string parameters are used to search for accounts
+> > which have the given annotation value.  For example, the following API
+> > call:
+> > 
+> > > `/search?auth_token=123&primary=RL&secondary=CST`
 > > 
 > > will return only those accounts which have an annotation named "primary"
 > > with the value "RL" and an annotation named "secondary" with the value

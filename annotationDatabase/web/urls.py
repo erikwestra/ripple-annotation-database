@@ -18,5 +18,9 @@ urlpatterns = patterns('annotationDatabase.web.views',
     url(r'^view_account_history/(?P<account>[^/]+)', "view_account_history"),
     url(r'^search$',                                 "search"),
     url(r'^search_results$',                         "search_results"),
+    url(r'^clients$',                                "view_clients"),
+    url(r'^clients/add$',                            "add_client"),
+    url(r'^clients/edit/(?P<client_id>[^/]+)',       "edit_client"),
+    url(r'^clients/delete/(?P<client_id>[^/]+)',     "delete_client"),
 )
 
