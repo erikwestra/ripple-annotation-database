@@ -366,3 +366,135 @@ class SearchTestCase(django.test.TestCase):
         self.assertTrue("r123" in response['accounts'])
         self.assertTrue("r124" in response['accounts'])
 
+#############################################################################
+
+class SetTemplateTestCase(django.test.TestCase):
+    """ Unit tests for the "/set_template" endpoint.
+    """
+    def test_set_template_in_body(self):
+        """ Test the "/set_template" endpoint.
+
+            This version of the test stores the template in the body of the
+            HTTP request.
+        """
+        auth_token = helpers.get_auth_token_for_testing()
+
+        template = {
+            'auth_token' : auth_token,
+            'template'   : [
+                {'annotation'       : "name",
+                 'label'            : "Name",
+                 'type'             : "field",
+                 'field_required'   : True,
+                 'field_min_length' : 3,
+                 'field_max_length' : 100},
+
+                {'annotation'       : "gender",
+                 'label'            : "Gender",
+                 'type'             : "choice",
+                 'choices'          : [["M", "Male"], ["F", "Female"]]},
+            ]
+        }
+
+        response = self.client.post("/set_template/test1",
+                                    data=json.dumps(template),
+                                    content_type="application/json")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], "application/json")
+
+        response = json.loads(response.content)
+
+        if not response['success']:
+            self.fail(response['error'])
+        self.assertItemsEqual(response.keys(), ['success'])
+
+
+    def test_set_template_query_params(self):
+        """ Test the "/set_template" endpoint.
+        
+            This version of the test provides the template in a query
+            parameter.
+        """
+        auth_token = helpers.get_auth_token_for_testing()
+
+        template = {
+            'auth_token' : auth_token,
+            'template'   : [
+                {'annotation'       : "name",
+                 'label'            : "Name",
+                 'type'             : "field",
+                 'field_required'   : True,
+                 'field_min_length' : 3,
+                 'field_max_length' : 100},
+
+                {'annotation'       : "gender",
+                 'label'            : "Gender",
+                 'type'             : "choice",
+                 'choices'          : [["M", "Male"], ["F", "Female"]]},
+            ]
+        }
+
+        template_data = json.dumps(template)
+        template_data = template_data.replace("&", "%26")
+        template_data = template_data.replace("=", "%3D")
+
+        response = self.client.get("/set_template/test2",
+                                   data={'template' : template_data})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], "application/json")
+
+        response = json.loads(response.content)
+
+        if not response['success']:
+            self.fail(response['error'])
+        self.assertItemsEqual(response.keys(), ['success'])
+
+#############################################################################
+
+class GetTemplateTestCase(django.test.TestCase):
+    """ Unit tests for the "/get_template" endpoint.
+    """
+    def test_get_template(self):
+        """ Test the "/get_template" endpoint.
+
+            This version of the test stores the template in the body of the
+            HTTP request.
+        """
+        auth_token = helpers.get_auth_token_for_testing()
+
+        template = [
+            {'annotation'       : "name",
+             'label'            : "Name",
+             'type'             : "field",
+             'field_required'   : True,
+             'field_min_length' : 3,
+             'field_max_length' : 100},
+
+            {'annotation'       : "gender",
+             'label'            : "Gender",
+             'type'             : "choice",
+             'choices'          : [["M", "Male"], ["F", "Female"]]},
+        ]
+
+        response = self.client.post("/set_template/test3",
+                                    data=json.dumps({'auth_token' : auth_token,
+                                                     'template'   : template}),
+                                    content_type="application/json")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], "application/json")
+
+        response = json.loads(response.content)
+        if not response['success']:
+            self.fail(response['error'])
+
+        response = self.client.get("/get_template/test3",
+                                   data={'auth_token' : auth_token})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], "application/json")
+
+        response = json.loads(response.content)
+        if not response['success']:
+            self.fail(response['error'])
+
+        self.assertItemsEqual(response.keys(), ['success', 'template'])
+

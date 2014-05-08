@@ -68,6 +68,83 @@ with it:
 > 
 > > A list of the annotations in the batch.
 
+To allow users to maintain a set of annotation values via a client program, the
+Ripple Annotation Database supports the notion of an __Annotation Template__.
+This is a data structure listing a set of annotations and how the user can view
+and edit those annotation values.  Each annotation template is given a unique
+__name__, which indicates the purpose or context in which the template should be
+used.  The template then contains a list of annotation entries, where each
+annotation entry in the template will have the following information:
+
+> `annotation`
+> 
+> > The annotation key value for the desired annotation, for example,
+> > "`phone_number`".
+> 
+> `label`
+> 
+> > A string to be displayed to the user to identify the annotation, for
+> > example, "phone number".
+> 
+> `type`
+> 
+> > A string indicating the type of annotation value to be entered.  The
+> > following type values are currently supported:
+> > 
+> > > __choice__
+> > > 
+> > > > The user can choose between two or more values.
+> > > 
+> > > __field__
+> > > 
+> > > > The user can enter a value directly into an input field.
+> 
+> `default`
+> 
+> > The default value to use for this annotation, as a string.  If this is not
+> > present, no default value should be set.
+> 
+> `choices`
+> 
+> > For "choice" annotations, this will be an array of possible values the user
+> > can choose between.  Each entry in the array will be another array with two
+> > entries, where the first entry is the desired annotation value, and the
+> > second entry is the label to display to the user when this annotation value
+> > is selected.  For example:
+> >   
+> >         choices: [["M", "Male"], ["F", "Female"]]
+> 
+> `field_size`
+> 
+> > For "field" annotations, this will be the desired width of the input field,
+> > in characters.  This corresponds to the `size` attribute for an HTML
+> > `<input>` tag.  Note that if this is not specified, the client will choose
+> > a default width.
+> 
+> `field_required`
+> 
+> > For "field" annotations, this will be set to `true` if the user is required
+> > to enter a value for this annotation.  If this is not present, the
+> > annotation should not be required.
+> 
+> `field_min_length`
+> 
+> > For "field" annotations, this will be the minimum allowable length for this
+> > annotation value.  If this is not present, no minimum length should be
+> > imposed.
+> 
+> `field_max_length`
+> 
+> > For "field" annotations, this will be the maximum allowable length for this
+> > annotation value.  If this is not present, no maximum length should be
+> > imposed.
+
+Client systems can download a desired annotation template, and also download
+the current annotation values for a given Ripple account.  This allows the
+client system to display the annotation values to the user using the template,
+and send any changes back to the Ripple Annotation Database as an annotation
+batch.
+
 
 ## API Endpoints ##
 
@@ -569,9 +646,225 @@ The Ripple Annotation API currently supports the following endpoints:
 > > 
 > > In this case, the `error` field will be a string describing why the request
 > > failed.
+> 
+> __`/set_template/{template}`__
+> 
+> > Add or update an annotation template in the database.
+> > 
+> > Note that the name of the desired annotation template is included as part
+> > of the URL itself.
+> > 
+> > This endpoint accepts a single annotation template, in JSON format.  There
+> > are two ways in which this JSON data can be supplied:
+> > 
+> > 1. By submitting an HTTP "POST" request with a `Content-Type` value of
+> >    `application/json`.  In this case, the JSON data should be in the body
+> >    of the HTTP request.
+> > <p/>
+> > 2. By using a query-string parameter named `template`.  Note that in this
+> >    case, any "`&`" characters in the JSON data should be replaced with
+> >    "`%26`", and any '`=`" characters must be replaced with "`%3D`".  This
+> >    avoids confusion when the query-string parameters are parsed by the
+> >    server.
+> > 
+> > The JSON data must consist of an object with the following fields:
+> > 
+> > > `auth_token` _(required)_
+> > > 
+> > > > The calling system's authentication token.
+> > > 
+> > > `template` _(required)_
+> > > 
+> > > > An array of annotation entries to be included in the template.  Each
+> > > > array entry should be an object with the following fields:
+> > > > 
+> > > > > `annotation` _(required)_
+> > > > > 
+> > > > > > The annotation key value for the desired annotation, for example,
+> > > > > > "`phone_number`".
+> > > > > 
+> > > > > `label` _(required)_
+> > > > > 
+> > > > > > A string to be displayed to the user to identify the annotation,
+> > > > > > for example, "`phone number`".
+> > > > > 
+> > > > > `type` _(required)_
+> > > > > 
+> > > > > > A string indicating the type of annotation value to be entered.
+> > > > > > The following type values are currently supported:
+> > > > > > 
+> > > > > > > __choice__
+> > > > > > > 
+> > > > > > > > The user can choose between two or more values.
+> > > > > > > 
+> > > > > > > __field__
+> > > > > > > 
+> > > > > > > > The user can enter a value directly into an input field.
+> > > > > 
+> > > > > `default` _(optional)_
+> > > > > 
+> > > > > > The default value to use for this annotation, as a string.  If this
+> > > > > > is not present, no default value should be set.
+> > > > > 
+> > > > > `choices` _(required for "choice" annotations)_
+> > > > > 
+> > > > > > An array of possible values the user can choose between.  Each
+> > > > > > entry in the array will be another array with two entries, where
+> > > > > > the first entry is the desired annotation value, and the second
+> > > > > > entry is the label to display to the user when this annotation
+> > > > > > value is selected.  For example:
+> > > > > >   
+> > > > > >         choices: [["M", "Male"], ["F", "Female"]]
+> > > > > 
+> > > > > `field_size` _(optional, only for "field" annotations)_
+> > > > > 
+> > > > > > The desired width of the input field, in characters.  This
+> > > > > > corresponds to the `size` attribute for an HTML `<input>` tag.
+> > > > > > Note that if this is not specified, the client will choose a
+> > > > > > default width.
+> > > > > 
+> > > > > `field_required` _(optional, only for "field" annotations)_
+> > > > > 
+> > > > > > Set this to `true` if the user is required to enter a value for
+> > > > > > this annotation.  If this is not present, the annotation will not
+> > > > > > be required.
+> > > > > 
+> > > > > `field_min_length` _(optional, only for "field" annotations)_
+> > > > > 
+> > > > > > The minimum allowable length for this annotation value.  If this is
+> > > > > > not present, no minimum length will be imposed.
+> > > > > 
+> > > > > `field_max_length` _(optional, only for "field" annotations)_
+> > > > > 
+> > > > > > The maximum allowable length for this annotation value.  If this is
+> > > > > > not present, no maximum length will be imposed.
+> > 
+> > If there is already an annotation template with the given name, it will be
+> > replaced by the updated values.  Otherwise, a new template with that name
+> > will be created.
+> > 
+> > Upon completion, the server will return an HTTP status code of `200` (OK),
+> > and the body of the response will have a content-type value of
+> > `application/json`.  The body of the response will consist of a JSON object
+> > describing the result of the API call.  If the request was successful, the
+> > returned JSON object will look like this:
+> > 
+> > >     {
+> > >       success: true,
+> > >     }
+> > 
+> > If the request was not successful, the returned JSON object will look like
+> > this:
+> > 
+> > >     {
+> > >       success: false,
+> > >       error: "..."
+> > >     }
+> > 
+> > In this case, the `error` field will be a string describing why the request
+> > failed.
+> 
+> __`/get_template/{template}`__
+> 
+> > Return the contents of the given annotation template.
+> > 
+> > Note that the name of the desired annotation template is included as part
+> > of the URL itself.
+> > 
+> > The following query string parameter must be supplied:
+> > 
+> > > `auth_token` _(required)_
+> > > 
+> > > > The calling system's authentication token.
+> > 
+> > Upon completion, the server will return an HTTP status code of `200` (OK),
+> > and the body of the response will have a content-type value of
+> > `application/json`.  The body of the response will consist of a JSON object
+> > describing the result of the API call.  If the request was successful, the
+> > returned JSON object will look like this:
+> > 
+> > >     {
+> > >       success: true,
+> > >       template: [ /* array of annotation entries */ ]
+> > >     }
+> > 
+> > Each entry in the 'template' array will be an object with the following
+> > fields:
+> > 
+> > > `annotation`
+> > > 
+> > > > The annotation key value for the desired annotation, for example,
+> > > > "`phone_number`".
+> > > 
+> > > `label`
+> > > 
+> > > > A string to be displayed to the user to identify the annotation, for
+> > > > example, "`phone number`".
+> > > 
+> > > `type`
+> > > 
+> > > > A string indicating the type of annotation value to be entered.  The
+> > > > following type values are currently supported:
+> > > > 
+> > > > > __choice__
+> > > > > 
+> > > > > > The user can choose between two or more values.
+> > > > > 
+> > > > > __field__
+> > > > > 
+> > > > > > The user can enter a value directly into an input field.
+> > > 
+> > > `default`
+> > > 
+> > > > The default value to use for this annotation, as a string.  If this is
+> > > > not present, no default value should be set.
+> > > 
+> > > `choices`
+> > > 
+> > > > An array of possible values the user can choose between.  Each entry in
+> > > > the array will be another array with two entries, where the first entry
+> > > > is the desired annotation value, and the second entry is the label to
+> > > > display to the user when this annotation value is selected.  For
+> > > > example:
+> > > >   
+> > > >         choices: [["M", "Male"], ["F", "Female"]]
+> > > 
+> > > `field_size`
+> > > 
+> > > > The desired width of the input field, in characters.  This corresponds
+> > > > to the `size` attribute for an HTML `<input>` tag.  Note that if this
+> > > > is not specified, the client will choose a default width.
+> > > 
+> > > `field_required`
+> > > 
+> > > > Set this to `true` if the user is required to enter a value for this
+> > > > annotation.  If this is not present, the annotation will not be
+> > > > required.
+> > > 
+> > > `field_min_length`
+> > > 
+> > > > The minimum allowable length for this annotation value.  If this is not
+> > > > present, no minimum length will be imposed.
+> > > 
+> > > `field_max_length`
+> > > 
+> > > > The maximum allowable length for this annotation value.  If this is not
+> > > > present, no maximum length will be imposed.
+> > 
+> > If the request was not successful, the returned JSON object will look like
+> > this:
+> > 
+> > >     {
+> > >       success: false,
+> > >       error: "..."
+> > >     }
+> > 
+> > In this case, the `error` field will be a string describing why the request
+> > failed.
 
 Note that all the API endpoints can be called using either HTTP "POST" or HTTP
 "GET" -- the API makes no distinction based on the HTTP method.
+
 
 ## Web Interface ##
 
@@ -610,6 +903,7 @@ Once the user has logged in, they will be presented with the following options:
 >     View Uploaded Annotations  
 >     View Account Annotations  
 >     Search  
+>     Edit Annotation Templates
 >     Add/Edit Users  
 >     Change password  
 >     Log out
@@ -665,6 +959,14 @@ along with the batch number where this annotation was applied.
 The user will be asked to enter up to three annotation keys and their
 associated values.  The system will then search for matching Ripple accounts,
 and display the Ripple address for those matching accounts.
+
+### Edit Annotation Templates ###
+
+> __`/web/templates`__
+
+This lets the user view the list of annotation templates, and upload a new
+template from an Excel spreadsheet.  Existing templates can be deleted if
+desired.
 
 ### Add/Edit Users ###
 

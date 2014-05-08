@@ -31,5 +31,11 @@ urlpatterns = patterns('annotationDatabase.api.views',
 
     url(r'^search',  "search"),
     url(r'^search/', "search"),
+
+    url('^set_template/(?P<template_name>[^/]+)',  'set_template'),
+    url('^set_template/(?P<template_name>[^/]+)/', 'set_template'),
+
+    url('^get_template/(?P<template_name>[^/]+)',  'get_template'),
+    url('^get_template/(?P<template_name>[^/]+)/', 'get_template'),
 )
 

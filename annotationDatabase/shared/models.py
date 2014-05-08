@@ -47,6 +47,36 @@ class Annotation(models.Model):
 
 #############################################################################
 
+class AnnotationTemplate(models.Model):
+    """ A single uploaded annotation template.
+    """
+    id   = models.AutoField(primary_key=True)
+    name = models.TextField(unique=True, db_index=True)
+
+#############################################################################
+
+class AnnotationTemplateEntry(models.Model):
+    """ A single annotation entry within an annotation template.
+
+        Note that the "choices" field holds the available choices as a JSON
+        string.
+    """
+    id               = models.AutoField(primary_key=True)
+    template         = models.ForeignKey(AnnotationTemplate)
+    annotation       = models.ForeignKey(AnnotationKey)
+    label            = models.TextField()
+    type             = models.TextField(choices=[("choice", "choice"),
+                                                 ("field",  "field")],
+                                        default="field")
+    default          = models.TextField(null=True)
+    choices          = models.TextField(null=True)
+    field_size       = models.IntegerField(null=True)
+    field_required   = models.NullBooleanField()
+    field_min_length = models.IntegerField(null=True)
+    field_max_length = models.IntegerField(null=True)
+
+#############################################################################
+
 class Client(models.Model):
     """ A client system authorized to use the Annotation Database.
     """

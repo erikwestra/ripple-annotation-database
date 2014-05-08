@@ -10,6 +10,8 @@
 import datetime
 import time
 
+import simplejson as json
+
 from django.utils.timezone import utc
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
@@ -725,4 +727,391 @@ def search(criteria):
 
     return {'success'  : True,
             'accounts' : still_matching_accounts}
+
+#############################################################################
+
+def set_template(template_name, template):
+    """ Add or update an annotation template in the database.
+
+        The parameters are as follows:
+
+            'template_name'
+
+                The name of the template.
+
+            'template'
+
+                A list of annotation entries to be included in the template.
+                Each list item should be a dictionary with the following
+                entries:
+
+                    'annotation' (required)
+
+                        The annotation key value for the desired annotation,
+                        for example, "phone_number".
+
+                    'label' (required)
+
+                        A string to be displayed to the user to identify the
+                        annotation, for example, "phone number".
+
+                    'type' (required)
+
+                        A string indicating the type of annotation value to be
+                        entered. The following type values are currently
+                        supported:
+
+                            choice
+
+                                The user can choose between two or more values.
+
+                            field
+
+                                The user can enter a value directly into an
+                                input field.
+
+                    'default' (optional)
+
+                        The default value to use for this annotation, as a
+                        string. If this is not present, no default value should
+                        be set.
+
+                    'choices' (required for "choice" annotations)
+
+                        An array of possible values the user can choose
+                        between. Each entry in the array will be another array
+                        with two entries, where the first entry is the desired
+                        annotation value, and the second entry is the label to
+                        display to the user when this annotation value is
+                        selected. For example:
+
+                            choices: [["M", "Male"], ["F", "Female"]]
+
+                    'field_size' (optional, only for "field" annotations)
+
+                        The desired width of the input field, in characters.
+                        This corresponds to the size attribute for an HTML
+                        <input> tag. Note that if this is not specified, the
+                        client will choose a default width.
+
+                    'field_required' (optional, only for "field" annotations)
+
+                        Set this to true if the user is required to enter a
+                        value for this annotation. If this is not present, the
+                        annotation will not be required.
+
+                    'field_min_length' (optional, only for "field" annotations)
+
+                        The minimum allowable length for this annotation value.
+                        If this is not present, no minimum length will be
+                        imposed.
+
+                    'field_max_length' (optional, only for "field" annotations)
+
+                        The maximum allowable length for this annotation value.
+                        If this is not present, no maximum length will be
+                        imposed.
+
+        If there is already an annotation template with the given name, it will
+        be replaced by the updated values. Otherwise, a new template with that
+        name will be created.
+
+        If the request was successful, we return a dictionary which looks like
+        this:
+
+            {'success' : True}
+
+        If the request was not successful, we return a dictionary which looks
+        like this:
+
+            {'success' : False,
+             'error'   : "..."}
+
+        where 'error' is a string describing why the request failed.
+    """
+    # Convert the supplied template entries into a list of
+    # AnnotationTemplateEntry objects.  At the same time, we check that the
+    # correct set of parameters have been supplied.
+
+    if type(template) not in [list, tuple]:
+        return {'success' : False,
+                'error'   : "'template' entry must be an array"}
+
+    entries = []
+    for src_entry in template:
+        if type(src_entry) is not dict:
+            return {'success' : False,
+                    'error'   : "'template' list item must be an object"}
+
+        if "annotation" not in src_entry:
+            return {'success' : False,
+                    'error'   : "template entry missing required " +
+                                "'annotation' field"}
+
+        if "label" not in src_entry:
+            return {'success' : False,
+                    'error'   : "template entry missing required " +
+                                "'label' field"}
+
+        if "type" not in src_entry:
+            return {'success' : False,
+                    'error'   : "template entry missing required " +
+                                "'type' field"}
+
+        if src_entry['type'] not in ["choice", "field"]:
+            return {'success' : False,
+                    'error'   : "template entry type must be 'choice' or " +
+                                "'field'"}
+
+        if src_entry['type'] == "choice":
+            if "choices" not in src_entry:
+                return {'success' : False,
+                        'error'   : "choice template entry type must have a " +
+                                    "'choices' field"}
+
+        try:
+            annotationKey = AnnotationKey.objects.get(
+                                    key=src_entry['annotation'])
+        except AnnotationKey.DoesNotExist:
+            annotationKey = AnnotationKey()
+            annotationKey.key = src_entry['annotation']
+            annotationKey.save()
+
+        entry = AnnotationTemplateEntry()
+        entry.annotation = annotationKey
+        entry.label      = src_entry['label']
+        entry.type       = src_entry['type']
+        entry.default    = src_entry.get("default")
+
+        if entry.type == "choice":
+            entry.choices = json.dumps(src_entry['choices'])
+        elif entry.type == "field":
+            if "field_size" in src_entry:
+                entry.field_size = src_entry['field_size']
+            if "field_required" in src_entry:
+                entry.field_required = src_entry['field_required']
+            if "field_min_length" in src_entry:
+                entry.field_min_length = src_entry['field_min_length']
+            if "field_max_length" in src_entry:
+                entry.field_max_length = src_entry['field_max_length']
+
+        entries.append(entry)
+
+    # If we get here, the supplied parameters are acceptable -> add (or
+    # replace) the AnnotationTemplate.
+
+    try:
+        existing_template = AnnotationTemplate.objects.get(name=template_name)
+    except AnnotationTemplate.DoesNotExist:
+        existing_template = None
+
+    if existing_template != None:
+        # Delete the old template.
+        AnnotationTemplateEntry.objects.filter(
+                                    template=existing_template).delete()
+        existing_template.delete()
+
+    template = AnnotationTemplate()
+    template.name = template_name
+    template.save()
+
+    for entry in entries:
+        entry.template = template
+        entry.save()
+
+    # Finally, tell the caller the good news.
+
+    return {'success' : True}
+
+#############################################################################
+
+def get_template(template_name):
+    """ Return the contents of the given annotation template.
+
+        If the request was successful, we return a dictionary which looks like
+        this:
+
+            {'success' : True,
+             'template' : [...]}
+
+        where 'template' is the list of annotation entries which make up the
+        template.  Each item in this list will be a dictionary with the
+        following entries:
+
+            'annotation'
+
+                The annotation key value for this annotation, for example,
+                "phone_number".
+
+            'label'
+
+                A string to be displayed to the user to identify the
+                annotation, for example, "phone number".
+
+            'type'
+
+                A string indicating the type of annotation value to be entered.
+                The following type values are currently supported:
+
+                    choice
+
+                        The user can choose between two or more values.
+
+                    field
+
+                        The user can enter a value directly into an input
+                        field.
+
+            'default'
+
+                The default value to use for this annotation, as a
+                string. If this is not present, no default value should
+                be set.
+
+            'choices'
+
+                An array of possible values the user can choose between. Each
+                entry in the array will be another array with two entries,
+                where the first entry is the desired annotation value, and the
+                second entry is the label to display to the user when this
+                annotation value is selected. For example:
+
+                    choices: [["M", "Male"], ["F", "Female"]]
+
+                Note that this entry will only be present for "choice"
+                annotations.
+
+            'field_size'
+
+                If present, this will be the desired width of the input field,
+                in characters.  This corresponds to the size attribute for an
+                HTML <input> tag. Note that if this is not specified, the
+                client will choose a default width.
+
+            'field_required'
+
+                If present, this will be True if the user is required to enter
+                a value for this annotation. If this is not present, the
+                annotation will not be required.
+
+            'field_min_length'
+
+                If this is present, it will be the minimum allowable length for
+                this annotation value.  If this is not present, no minimum
+                length will be imposed.
+
+            'field_max_length'
+
+                If this is present, it will be the maximum allowable length for
+                this annotation value.  If this is not present, no maximum
+                length will be imposed.
+
+        If the request was not successful, we return a dictionary which looks
+        like this:
+
+            {'success' : False,
+             'error'   : "..."}
+
+        where 'error' is a string describing why the request failed.
+    """
+    try:
+        template = AnnotationTemplate.objects.get(name=template_name)
+    except AnnotationTemplate.DoesNotExist:
+        return {'success' : False,
+                'error'   : "No such template"}
+
+    entries = AnnotationTemplateEntry.objects.filter(template=template)
+
+    data = []
+    for entry in entries.order_by("id"):
+        item = {}
+        item['annotation'] = entry.annotation.key
+        item['label']      = entry.label
+        item['type']       = entry.type
+
+        if entry.default != None:
+            item['default'] = entry.default
+
+        if entry.choices != None:
+            item['choices'] = json.loads(entry.choices)
+
+        if entry.field_size != None:
+            item['field_size'] = entry.field_size
+
+        if entry.field_required != None:
+            item['field_required'] = entry.field_required
+
+        if entry.field_min_length != None:
+            item['field_min_length'] = entry.field_min_length
+
+        if entry.field_max_length != None:
+            item['field_max_length'] = entry.field_max_length
+
+        data.append(item)
+
+    return {'success'  : True,
+            'template' : data}
+
+#############################################################################
+
+def list_templates(page=1, rpp=100):
+    """ Return a list of uploaded annotation templates.
+
+        The parameters are as follows:
+
+            'page'
+
+                Which page of results to return. Note that the templates are
+                listed alphabetically, and page 1 is the first page of
+                templates.
+
+            'rpp'
+
+                The number of results to return per page.
+
+        If the request was successful, we return a dictionary which looks like
+        this:
+
+            {'success'   : True,
+             'num_pages' : 10,
+             'templates' : [..]}
+
+        'num_pages' is the number of pages of results that will be returned
+        with the given 'rpp' value.
+
+        Each entry in the 'templates' list will be a dictionary with the
+        following entries:
+
+            'id'
+
+                The unique record ID for this annotation template.
+
+            'name'
+
+                The name for this annotation template.
+
+        If an error occurred, we return a dictionary which looks like this:
+
+            {'success' : False,
+             'error'   : "..."}
+
+        where 'error' is a string describing why the request failed.
+    """
+    paginator = Paginator(AnnotationTemplate.objects.order_by("name"), rpp)
+
+    try:
+        templates_in_page = paginator.page(page)
+    except PageNotAnInteger:
+        templates_in_page = paginator.page(1)
+    except EmptyPage:
+        templates_in_page = []
+
+    templates = []
+    for template in templates_in_page:
+        templates.append({'id'   : template.id,
+                          'name' : template.name})
+
+    return {'success'   : True,
+            'num_pages' : paginator.num_pages,
+            'templates' : templates}
 

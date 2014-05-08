@@ -235,3 +235,67 @@ def search(request):
     response = functions.search(criteria)
     return HttpResponse(json.dumps(response), content_type="application/json")
 
+#############################################################################
+
+def set_template(request, template_name):
+    """ Respond to the "/set_template/{template}" URL.
+    """
+    if (request.method == "POST" and
+        ("application/json" in request.META['CONTENT_TYPE'])):
+        raw_data = request.body
+    else:
+        if request.method == "GET":
+            params = request.GET
+        elif request.method == "POST":
+            params = request.POST
+        else:
+            return HttpResponseNotAllowed(["GET", "POST"])
+
+        if "template" not in params:
+            return HttpResponse(json.dumps({'success' : False,
+                                            'error'   : 'Missing required ' +
+                                                        '"template" ' +
+                                                        'parameter'}),
+                                content_type="application/json")
+
+        raw_data = params['template']
+
+    try:
+        template = json.loads(raw_data)
+    except ValueError:
+        return HttpResponse(json.dumps({'success' : False,
+                                        'error'   : 'Invalid JSON data'}),
+                            content_type="application/json")
+
+    if not helpers.auth_token_valid(template.get("auth_token")):
+        return HttpResponse(json.dumps({'success' : False,
+                                        'error'   : 'Invalid or missing ' +
+                                                    'authentication token'}),
+                            content_type="application/json")
+
+    response = functions.set_template(template_name, template['template'])
+
+    return HttpResponse(json.dumps(response), content_type="application/json")
+
+#############################################################################
+
+def get_template(request, template_name):
+    """ Respond to the "/get_template/{template}" URL.
+    """
+    if request.method == "GET":
+        params = request.GET
+    elif request.method == "POST":
+        params = request.POST
+    else:
+        return HttpResponseNotAllowed(["GET", "POST"])
+
+    if not helpers.auth_token_valid(params.get("auth_token")):
+        return HttpResponse(json.dumps({'success' : False,
+                                        'error'   : 'Invalid or missing ' +
+                                                    'authentication token'}),
+                            content_type="application/json")
+
+    response = functions.get_template(template_name)
+
+    return HttpResponse(json.dumps(response), content_type="application/json")
+

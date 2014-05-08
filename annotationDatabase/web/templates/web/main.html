@@ -4,7 +4,7 @@
 {% block config %}
   {% set title         = "Ripple Annotation Database" %}
   {% set dialog_width  = 350 %}
-  {% set dialog_height = 260 %}
+  {% set dialog_height = 320 %}
   {% set header_height = 32 %}
   {% set footer_height = 15 %}
 {% endblock %}
@@ -28,7 +28,7 @@
   <div style="height: 20px">
   </div>
   {% for label,url in options %}
-  <div style="margin-left: 20px; width: 260px">
+  <div style="margin-left: 20px; width: 320px">
     {% if url %}
     <a href="{{ url }}">{{label}}</a>
     {% else %}
