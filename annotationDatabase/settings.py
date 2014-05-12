@@ -86,7 +86,7 @@ INSTALLED_APPS = (
 
     "annotationDatabase.shared",
     "annotationDatabase.api",
-    "annotationDatabase.web",
+    "annotationDatabase.admin",
 )
 
 MIDDLEWARE_CLASSES = (
@@ -171,5 +171,5 @@ LOGGING = {
 
 # Configure the authentication app.
 
-AUTHENTICATION_MAIN_URL = "/web"
+AUTHENTICATION_MAIN_URL = "/admin"
 

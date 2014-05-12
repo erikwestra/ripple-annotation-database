@@ -1,7 +1,7 @@
-""" annotationDatabase.web.views
+""" annotationDatabase.admin.views
 
     This module defines the various view functions for the Ripple Annotation
-    Database's "web" application.
+    Database's "admin" application.
 """
 import datetime
 import uuid
@@ -22,36 +22,36 @@ from annotationDatabase.api import functions
 #############################################################################
 
 def main(request):
-    """ Respond to our top-level "/web" URL.
+    """ Respond to our top-level "/admin" URL.
     """
     if not auth_controller.is_logged_in(request):
         return auth_controller.redirect_to_login()
 
     options = []
-    options.append(["Add Annotations",            "/web/add"])
-    options.append(["Upload Annotations",         "/web/upload"])
-    options.append(["View Annotation Batches",    "/web/select_batch"])
-    options.append(["View Account Annotations",   "/web/select_account"])
-    options.append(["Search",                     "/web/search"])
+    options.append(["Add Annotations",            "/admin/add"])
+    options.append(["Upload Annotations",         "/admin/upload"])
+    options.append(["View Annotation Batches",    "/admin/select_batch"])
+    options.append(["View Account Annotations",   "/admin/select_account"])
+    options.append(["Search",                     "/admin/search"])
     options.append(["--------------", None])
-    options.append(["View Annotation Templates",  "/web/templates"])
-    options.append(["Upload Annotation Template", "/web/templates/upload"])
+    options.append(["View Annotation Templates",  "/admin/templates"])
+    options.append(["Upload Annotation Template", "/admin/templates/upload"])
     options.append(["--------------", None])
     if auth_controller.is_admin(request):
         options.append(["Add/Edit Users",
                         auth_controller.get_user_admin_url()])
-    options.append(["Add/Edit Client Systems", "/web/clients"])
+    options.append(["Add/Edit Client Systems", "/admin/clients"])
 
     options.append(["Change Password",
                     auth_controller.get_change_password_url()])
     options.append(["Log Out", auth_controller.get_logout_url()])
 
-    return render(request, "web/main.html", {'options' : options})
+    return render(request, "admin/main.html", {'options' : options})
 
 #############################################################################
 
 def add(request):
-    """ Respond to the "/web/add" URL.
+    """ Respond to the "/admin/add" URL.
 
         We let the user manually add an annotation to the system.
     """
@@ -112,19 +112,20 @@ def add(request):
                 response = functions.add({'user_id'     : user_id,
                                           'annotations' : annotations})
                 if response['success']:
-                    return HttpResponseRedirect("/web")
+                    return HttpResponseRedirect("/admin")
                 else:
                     err_msg = response['error']
         elif request.POST['submit'] == "Cancel":
-            return HttpResponseRedirect("/web")
+            return HttpResponseRedirect("/admin")
 
-    return render(request, "web/add_annotations.html", {'data'    : data,
-                                                        'err_msg' : err_msg})
+    return render(request, "admin/add_annotations.html",
+                  {'data'    : data,
+                   'err_msg' : err_msg})
 
 #############################################################################
 
 def upload(request):
-    """ Respond to the "/web/upload" URL.
+    """ Respond to the "/admin/upload" URL.
 
         We let the user upload a batch of annotations.
     """
@@ -199,14 +200,14 @@ def upload(request):
                 err_msg = response['error']
 
         if err_msg == None:
-            return HttpResponseRedirect("/web")
+            return HttpResponseRedirect("/admin")
 
-    return render(request, "web/upload_batch.html", {'err_msg' : err_msg})
+    return render(request, "admin/upload_batch.html", {'err_msg' : err_msg})
 
 #############################################################################
 
 def select_batch(request):
-    """ Respond to the "/web/select_batch" URL.
+    """ Respond to the "/admin/select_batch" URL.
 
         We display a list of annotation batches, and let the user select the
         batch to view.
@@ -226,7 +227,7 @@ def select_batch(request):
     response = functions.list_batches(params.get("page"), rpp=20)
     if not response['success']:
         print response # Fix error handling later.
-        return HttpResponseRedirect("/web")
+        return HttpResponseRedirect("/admin")
 
     batches   = response['batches']
     num_pages = response['num_pages']
@@ -236,9 +237,9 @@ def select_batch(request):
         batch['timestamp'] = datetime.datetime.utcfromtimestamp(timestamp)
 
     if request.method == "POST" and request.POST['submit'] == "Done":
-        return HttpResponseRedirect("/web")
+        return HttpResponseRedirect("/admin")
 
-    return render(request, "web/select_batch.html",
+    return render(request, "admin/select_batch.html",
                   {'page'      : page,
                    'num_pages' : num_pages,
                    'batches'   : batches})
@@ -246,7 +247,7 @@ def select_batch(request):
 #############################################################################
 
 def view_batch(request, batch_number):
-    """ Respond to the "/web/view_batch/{batch_number}" URL.
+    """ Respond to the "/admin/view_batch/{batch_number}" URL.
 
         We display the contents of the given annotation batch, and let the user
         hide annotations within the batch.
@@ -258,7 +259,7 @@ def view_batch(request, batch_number):
 
     if not response['success']:
         print response # Fix error handling later.
-        return HttpResponseRedirect("/web")
+        return HttpResponseRedirect("/admin")
 
     annotations = response['annotations']
     for annotation in annotations:
@@ -276,19 +277,19 @@ def view_batch(request, batch_number):
                                account=annotation['account'],
                                annotation=annotation['key'])
                 # Reload the page to show the updated batch contents.
-                return HttpResponseRedirect("/web/view_batch/%s" %
+                return HttpResponseRedirect("/admin/view_batch/%s" %
                                             batch_number)
 
         if request.POST.get("submit") == "Done":
-            return HttpResponseRedirect("/web")
+            return HttpResponseRedirect("/admin")
 
-    return render(request, "web/view_batch.html",
+    return render(request, "admin/view_batch.html",
                   {'annotations' : annotations})
 
 #############################################################################
 
 def select_account(request):
-    """ Respond to the "/web/select_account" URL.
+    """ Respond to the "/admin/select_account" URL.
 
         We let the user choose an account to view.
         view the annotations associated with a single account.
@@ -308,15 +309,15 @@ def select_account(request):
     response = functions.list_accounts(params.get("page"), rpp=20)
     if not response['success']:
         print response # Fix error handling later.
-        return HttpResponseRedirect("/web")
+        return HttpResponseRedirect("/admin")
 
     accounts  = response['accounts']
     num_pages = response['num_pages']
 
     if request.method == "POST" and request.POST['submit'] == "Done":
-        return HttpResponseRedirect("/web")
+        return HttpResponseRedirect("/admin")
 
-    return render(request, "web/select_account.html",
+    return render(request, "admin/select_account.html",
                   {'page'      : page,
                    'num_pages' : num_pages,
                    'accounts'  : accounts})
@@ -324,7 +325,7 @@ def select_account(request):
 #############################################################################
 
 def view_account(request, account):
-    """ Respond to the "/web/view_account/{account}" URL.
+    """ Respond to the "/admin/view_account/{account}" URL.
 
         We let the user view the annotations associated with a single account.
     """
@@ -343,7 +344,7 @@ def view_account(request, account):
     response = functions.account(account)
     if not response['success']:
         print response # Fix error handling later.
-        return HttpResponseRedirect("/web")
+        return HttpResponseRedirect("/admin")
 
     paginator = Paginator(response['annotations'], 20)
 
@@ -355,9 +356,9 @@ def view_account(request, account):
         annotations = []
 
     if request.method == "POST" and request.POST['submit'] == "Done":
-        return HttpResponseRedirect("/web/select_account")
+        return HttpResponseRedirect("/admin/select_account")
 
-    return render(request, "web/view_account.html",
+    return render(request, "admin/view_account.html",
                   {'account'     : account,
                    'page'        : page,
                    'num_pages'   : paginator.num_pages,
@@ -366,7 +367,7 @@ def view_account(request, account):
 #############################################################################
 
 def view_account_history(request, account):
-    """ Respond to the "/web/view_account/{account}" URL.
+    """ Respond to the "/admin/view_account/{account}" URL.
 
         We let the user view the annotations associated with a single account.
     """
@@ -385,7 +386,7 @@ def view_account_history(request, account):
     response = functions.account_history(account)
     if not response['success']:
         print response # Fix error handling later.
-        return HttpResponseRedirect("/web")
+        return HttpResponseRedirect("/admin")
 
     # Convert the account history to a list form for display.
 
@@ -456,9 +457,9 @@ def view_account_history(request, account):
         history = []
 
     if request.method == "POST" and request.POST['submit'] == "Done":
-        return HttpResponseRedirect("/web/select_account")
+        return HttpResponseRedirect("/admin/select_account")
 
-    return render(request, "web/view_account_history.html",
+    return render(request, "admin/view_account_history.html",
                   {'account'   : account,
                    'page'      : page,
                    'num_pages' : paginator.num_pages,
@@ -467,7 +468,7 @@ def view_account_history(request, account):
 #############################################################################
 
 def search(request):
-    """ Respond to the "/web/search" URL.
+    """ Respond to the "/admin/search" URL.
 
         We let the user search for accounts with a given set of annotation
         values.
@@ -526,18 +527,18 @@ def search(request):
 
             if err_msg == None:
                 # Redirect the user to display the matching accounts.
-                return HttpResponseRedirect("/web/search_results?" +
+                return HttpResponseRedirect("/admin/search_results?" +
                                             "&".join(criteria))
         elif request.POST['submit'] == "Cancel":
-            return HttpResponseRedirect("/web")
+            return HttpResponseRedirect("/admin")
 
-    return render(request, "web/search.html", {'data'    : data,
-                                               'err_msg' : err_msg})
+    return render(request, "admin/search.html", {'data'    : data,
+                                                 'err_msg' : err_msg})
 
 #############################################################################
 
 def search_results(request):
-    """ Respond to the "/web/search_results" URL.
+    """ Respond to the "/admin/search_results" URL.
 
         We display the matching accounts for a given set of search criteria.
     """
@@ -561,7 +562,7 @@ def search_results(request):
     response = functions.search(criteria)
     if not response['success']:
         print response # Fix error handling later.
-        return HttpResponseRedirect("/web")
+        return HttpResponseRedirect("/admin")
 
     # Paginate the list of matching accounts, as required.
 
@@ -575,9 +576,9 @@ def search_results(request):
         accounts = []
 
     if request.method == "POST" and request.POST['submit'] == "Done":
-        return HttpResponseRedirect("/web")
+        return HttpResponseRedirect("/admin")
 
-    return render(request, "web/view_search_results.html",
+    return render(request, "admin/view_search_results.html",
                   {'criteria'  : criteria,
                    'page'      : page,
                    'num_pages' : paginator.num_pages,
@@ -586,7 +587,7 @@ def search_results(request):
 #############################################################################
 
 def view_clients(request):
-    """ Respond to the "/web/clients" URL.
+    """ Respond to the "/admin/clients" URL.
     """
     if not auth_controller.is_logged_in(request):
         return auth_controller.redirect_to_login()
@@ -613,11 +614,11 @@ def view_clients(request):
 
     if request.method == "POST":
         if request.POST['submit'] == "Done":
-            return HttpResponseRedirect("/web")
+            return HttpResponseRedirect("/admin")
         elif request.POST['submit'] == "Add":
-            return HttpResponseRedirect("/web/clients/add")
+            return HttpResponseRedirect("/admin/clients/add")
 
-    return render(request, "web/view_clients.html",
+    return render(request, "admin/view_clients.html",
                   {'page'      : page,
                    'num_pages' : paginator.num_pages,
                    'clients'   : clients})
@@ -625,7 +626,7 @@ def view_clients(request):
 #############################################################################
 
 def add_client(request):
-    """ Respond to the "/web/clients/add" URL.
+    """ Respond to the "/admin/clients/add" URL.
     """
     if not auth_controller.is_logged_in(request):
         return auth_controller.redirect_to_login()
@@ -664,13 +665,13 @@ def add_client(request):
 
                 # Return the caller back to the "list clients" view.
 
-                return HttpResponseRedirect("/web/clients")
+                return HttpResponseRedirect("/admin/clients")
         elif request.POST['submit'] == "Cancel":
-            return HttpResponseRedirect("/web/clients")
+            return HttpResponseRedirect("/admin/clients")
 
     # If we get here, we're going to display the "Add Client" page.  Do so.
 
-    return render(request, "web/edit_client.html",
+    return render(request, "admin/edit_client.html",
                   {'heading' : "Add Client System",
                    'name'    : name,
                    'err_msg' : err_msg})
@@ -678,7 +679,7 @@ def add_client(request):
 #############################################################################
 
 def edit_client(request, client_id):
-    """ Respond to the "/web/clients/edit/XXX" URL.
+    """ Respond to the "/admin/clients/edit/XXX" URL.
     """
     if not auth_controller.is_logged_in(request):
         return auth_controller.redirect_to_login()
@@ -686,7 +687,7 @@ def edit_client(request, client_id):
     try:
         client = Client.objects.get(id=client_id)
     except Client.DoesNotExist:
-        return HttpResponseRedirect("/web/clients") # Should never happen.
+        return HttpResponseRedirect("/admin/clients") # Should never happen.
 
     if request.method == "GET":
         # This is the first time we've displayed this page -> prepare our CGI
@@ -720,13 +721,13 @@ def edit_client(request, client_id):
 
                 # Return the caller back to the "list clients" view.
 
-                return HttpResponseRedirect("/web/clients")
+                return HttpResponseRedirect("/admin/clients")
         elif request.POST['submit'] == "Cancel":
-            return HttpResponseRedirect("/web/clients")
+            return HttpResponseRedirect("/admin/clients")
 
     # If we get here, we're going to display the "Edit Client" page.  Do so.
 
-    return render(request, "web/edit_client.html",
+    return render(request, "admin/edit_client.html",
                   {'heading' : "Edit Client System",
                    'name'    : name,
                    'err_msg' : err_msg})
@@ -734,7 +735,7 @@ def edit_client(request, client_id):
 #############################################################################
 
 def delete_client(request, client_id):
-    """ Respond to the "/web/clients/delete/XXX" URL.
+    """ Respond to the "/admin/clients/delete/XXX" URL.
     """
     if not auth_controller.is_logged_in(request):
         return auth_controller.redirect_to_login()
@@ -742,18 +743,18 @@ def delete_client(request, client_id):
     try:
         client = Client.objects.get(id=client_id)
     except Client.DoesNotExist:
-        return HttpResponseRedirect("/web/clients") # Should never happen.
+        return HttpResponseRedirect("/admin/clients") # Should never happen.
 
     if request.method == "POST":
         if request.POST['submit'] == "Delete":
             # The user confirmed -> delete the client.
             client.delete()
 
-        return HttpResponseRedirect("/web/clients")
+        return HttpResponseRedirect("/admin/clients")
 
     # Display the confirmation dialog.
 
-    return render(request, "web/confirm.html",
+    return render(request, "admin/confirm.html",
                   {'heading'  : "Delete Client System",
                    'message'  : 'Are you sure you want to delete the "' +
                                 client.name + '" client?',
@@ -762,7 +763,7 @@ def delete_client(request, client_id):
 #############################################################################
 
 def select_template(request):
-    """ Respond to the "/web/templates" URL.
+    """ Respond to the "/admin/templates" URL.
     """
     if not auth_controller.is_logged_in(request):
         return auth_controller.redirect_to_login()
@@ -779,15 +780,15 @@ def select_template(request):
     response = functions.list_templates(params.get("page"), rpp=20)
     if not response['success']:
         print response # Fix error handling later.
-        return HttpResponseRedirect("/web")
+        return HttpResponseRedirect("/admin")
 
     templates = response['templates']
     num_pages = response['num_pages']
 
     if request.method == "POST" and request.POST['submit'] == "Done":
-        return HttpResponseRedirect("/web")
+        return HttpResponseRedirect("/admin")
 
-    return render(request, "web/select_template.html",
+    return render(request, "admin/select_template.html",
                   {'page'      : page,
                    'num_pages' : num_pages,
                    'templates' : templates})
@@ -795,7 +796,7 @@ def select_template(request):
 #############################################################################
 
 def upload_template(request):
-    """ Respond to the "/web/templates/upload" URL.
+    """ Respond to the "/admin/templates/upload" URL.
     """
     if not auth_controller.is_logged_in(request):
         return auth_controller.redirect_to_login()
@@ -808,7 +809,7 @@ def upload_template(request):
     elif request.method == "POST":
         if request.POST['submit'] == "Cancel":
             # The user cancelled -> return back to the main view.
-            return HttpResponseRedirect("/web")
+            return HttpResponseRedirect("/admin")
 
         # If we get here, the user is submitting the form.  Try extracting the
         # template name and the uploaded file.
@@ -973,16 +974,16 @@ def upload_template(request):
                 err_msg = response['error']
 
         if err_msg == None:
-            return HttpResponseRedirect("/web")
+            return HttpResponseRedirect("/admin")
 
-    return render(request, "web/upload_template.html",
+    return render(request, "admin/upload_template.html",
                   {'name'    : template_name,
                    'err_msg' : err_msg})
 
 #############################################################################
 
 def view_template(request, template_id):
-    """ Respond to the "/web/templates/view/XXX" URL.
+    """ Respond to the "/admin/templates/view/XXX" URL.
     """
     if not auth_controller.is_logged_in(request):
         return auth_controller.redirect_to_login()
@@ -990,7 +991,7 @@ def view_template(request, template_id):
     try:
         template = AnnotationTemplate.objects.get(id=template_id)
     except AnnotationTemplate.DoesNotExist:
-        return HttpResponseRedirect("/web/templates") # Should never happen.
+        return HttpResponseRedirect("/admin/templates") # Should never happen.
 
     if request.method == "GET":
         params = request.GET
@@ -1068,11 +1069,11 @@ def view_template(request, template_id):
 
     if request.method == "POST":
         if request.POST.get("submit") == "Done":
-            return HttpResponseRedirect("/web/templates")
+            return HttpResponseRedirect("/admin/templates")
 
-    # Finally, display the web page.
+    # Finally, display the admin page.
 
-    return render(request, "web/view_template.html",
+    return render(request, "admin/view_template.html",
                   {'page'        : page,
                    'num_pages'   : paginator.num_pages,
                    'template'    : template,
@@ -1082,7 +1083,7 @@ def view_template(request, template_id):
 #############################################################################
 
 def delete_template(request, template_id):
-    """ Respond to the "/web/templates/delete/XXX" URL.
+    """ Respond to the "/admin/templates/delete/XXX" URL.
     """
     if not auth_controller.is_logged_in(request):
         return auth_controller.redirect_to_login()
@@ -1090,7 +1091,7 @@ def delete_template(request, template_id):
     try:
         template = AnnotationTemplate.objects.get(id=template_id)
     except AnnotationTemplate.DoesNotExist:
-        return HttpResponseRedirect("/web/templates") # Should never happen.
+        return HttpResponseRedirect("/admin/templates") # Should never happen.
 
     if request.method == "POST":
         if request.POST['submit'] == "Delete":
@@ -1098,11 +1099,11 @@ def delete_template(request, template_id):
             AnnotationTemplateEntry.objects.filter(template=template).delete()
             template.delete()
 
-        return HttpResponseRedirect("/web/templates")
+        return HttpResponseRedirect("/admin/templates")
 
     # Display the confirmation dialog.
 
-    return render(request, "web/confirm.html",
+    return render(request, "admin/confirm.html",
                   {'heading'  : "Delete Annotation Template",
                    'message'  : 'Are you sure you want to delete the "' +
                                 template.name + '" template?',

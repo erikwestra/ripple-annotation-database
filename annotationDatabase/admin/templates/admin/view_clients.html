@@ -54,7 +54,7 @@
 
 {% block header %}
   <div class="centre" style="font-weight:bold; margin-top:4px">
-    Annotation Templates
+    Authorized Client Systems
   </div>
 {% endblock %}
 
@@ -97,7 +97,10 @@
     <table border="0" cellspacing="0" cellpadding="5" style="margin-left:20px">
       <tr>
         <td nowrap class="label white_text">
-          Template
+          Client
+        </td>
+        <td nowrap class="label white_text">
+          auth_token
         </td>
         <td nowrap class="label white_text">
           &nbsp;
@@ -106,16 +109,19 @@
           &nbsp;
         </td>
       </tr>
-  {% for template in templates %}
+  {% for client in clients %}
       <tr>
         <td nowrap class="value white_text">
-          {{ template.name }}
+          {{ client.name }}
+        </td>
+        <td nowrap class="value white_text">
+          {{ client.auth_token }}
         </td>
         <td nowrap class="value">
-          <a href="/web/templates/view/{{ template.id }}">View</a>
+          <a href="/admin/clients/edit/{{ client.id }}">Edit</a>
         </td>
         <td nowrap class="value">
-          <a href="/web/templates/delete/{{ template.id }}">Delete</a>
+          <a href="/admin/clients/delete/{{ client.id }}">Delete</a>
         </td>
       </tr>
   {% endfor %}
@@ -125,6 +131,8 @@
 
 {% block footer %}
   <div style="width:530px; height:40px; margin-top:8px">
+    <input type="submit" name="submit" value="Add"/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     <input type="submit" name="submit" value="Done"/>
   </div>
 {% endblock %}

@@ -19,18 +19,18 @@ urlpatterns += patterns('',
 # Include the authentication application's urls.
 
 urlpatterns += patterns('',
-    url(r'^web/user/', include('annotationDatabase.authentication.urls')),
+    url(r'^admin/user/', include('annotationDatabase.authentication.urls')),
 )
 
-# Include our web interface urls.
+# Include our admin interface urls.
 
 urlpatterns += patterns('',
-    url(r'web/', include("annotationDatabase.web.urls")),
+    url(r'admin/', include("annotationDatabase.admin.urls")),
 )
 
-# Finally, redirect the top-level URL to our web interface.
+# Finally, redirect the top-level URL to our admin interface.
 
 urlpatterns += patterns('',
-    url(r'^$', RedirectView.as_view(url="/web")),
+    url(r'^$', RedirectView.as_view(url="/admin")),
 )
 

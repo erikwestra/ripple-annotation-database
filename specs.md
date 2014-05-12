@@ -3,18 +3,18 @@ Ripple Annotation Database
 
 This specification covers the __Ripple Annotation Database__, which is a system
 for recording and retrieving "annotations" associated with Ripple accounts.
-The Annotation Database consists of both an API and a password-protected web
+The Annotation Database consists of both an API and a password-protected admin
 interface which lets end users access and work with this API.
 
-Note that the web interface only acts as a "front end" to the API -- there is
-no functionality in the web interface which cannot be accessed via the API
+Note that the admin interface only acts as a "front end" to the API -- there is
+no functionality in the admin interface which cannot be accessed via the API
 directly.
 
 Because the Annotation Database may store sensitive information, the API and
-web interface are both protected.  API clients need to be authorized and issued
-with an _authentication token_ which must be used whenever the API is called.
-Similarly, users accessing the web interface must have a valid username and
-password.
+admin interface are both protected.  API clients need to be authorized and
+issued with an _authentication token_ which must be used whenever the API is
+called.  Similarly, users accessing the admin interface must have a valid
+username and password.
 
 
 ## Concepts ##
@@ -866,34 +866,34 @@ Note that all the API endpoints can be called using either HTTP "POST" or HTTP
 "GET" -- the API makes no distinction based on the HTTP method.
 
 
-## Web Interface ##
+## Admin Interface ##
 
 While the above API calls allow full access to all the functionality of the
 Ripple Annotation Database, they are not particularly convenient for end users
 to access.  To this end, the Annotation Database also provides a
-password-protected web interface.  When accessing the main URL for the
+password-protected admin interface.  When accessing the main URL for the
 Annotation Database (__`/`__), the user will be redirected to the "Log In"
 screen, where they will have to log in before they can do anything else.
 
 Let's take a closer look at the log in screen, and then the other options
-available via the web interface.
+available via the admin interface.
 
 ### Log In ###
 
-> __`/web/login`__
+> __`/admin/login`__
 
-When the user first accesses the web interface, either via the `/web` URL, or
-by a redirection from the main URL for the database, `/`, they will be taken to
-this URL.  This displays a dialog box asking the user to enter their username
-and password.  Once the user has logged in, they will be redirected back to the
-`/web` URL to display the main menu.
+When the user first accesses the admin interface, either via the `/admin` URL,
+or by a redirection from the main URL for the database, `/`, they will be taken
+to this URL.  This displays a dialog box asking the user to enter their
+username and password.  Once the user has logged in, they will be redirected
+back to the `/admin` URL to display the main menu.
 
 ### Main Menu ###
 
-> __`/web`__
+> __`/admin`__
 
 If the user has not logged in when they access this URL, they will be
-redirected back to `/web/login` so they can enter a valid username and
+redirected back to `/admin/login` so they can enter a valid username and
 password.  
 
 Once the user has logged in, they will be presented with the following options:
@@ -908,12 +908,12 @@ Once the user has logged in, they will be presented with the following options:
 >     Change password  
 >     Log out
 
-These options link to other URLs providing the various features of the web
+These options link to other URLs providing the various features of the admin
 interface, as described below.
 
 ### Add Annotation ###
 
-> __`/web/add`__
+> __`/admin/add`__
 
 This page will let the user add a single annotation value.  Note that a dummy
 batch will be created for this annotation, so the user is effectively creating
@@ -924,14 +924,14 @@ annotations without having to upload them.
 
 ### Upload Annotations ###
 
-> __`/web/upload`__
+> __`/admin/upload`__
 
 This page will let the user upload a batch of annotations using a tab-delimited
 text file.
 
 ### View Uploaded Annotations ###
 
-> __`/web/annotation`__
+> __`/admin/annotation`__
 
 The user will be presented with a list of uploaded annotation batches, and can
 click on a batch to view its contents.  The batch contents will then be
@@ -946,7 +946,7 @@ annotations over time.
 
 ### View Account Annotations ###
 
-> __`/web/account`__
+> __`/admin/account`__
 
 The user will be asked to enter the Ripple address for a desired account.  A
 list of all annotations currently in force for that account will then be shown,
@@ -954,7 +954,7 @@ along with the batch number where this annotation was applied.
 
 ### Search ###
 
-> __`/web/search`__
+> __`/admin/search`__
 
 The user will be asked to enter up to three annotation keys and their
 associated values.  The system will then search for matching Ripple accounts,
@@ -962,7 +962,7 @@ and display the Ripple address for those matching accounts.
 
 ### Edit Annotation Templates ###
 
-> __`/web/templates`__
+> __`/admin/templates`__
 
 This lets the user view the list of annotation templates, and upload a new
 template from an Excel spreadsheet.  Existing templates can be deleted if
@@ -970,20 +970,20 @@ desired.
 
 ### Add/Edit Users ###
 
-> __`/web/users`__
+> __`/admin/users`__
 
 Note that this option is only available for "admin" users.  This page lets the
 user add, edit and remove other users from the system.
 
 ### Change Password ###
 
-> __`/web/password`__
+> __`/admin/password`__
 
 This page lets the user change their password.
 
 ### Log Out ###
 
-> __`/web/logout`__
+> __`/admin/logout`__
 
 This page logs the user out again.  The "login" page will then be displayed.
 

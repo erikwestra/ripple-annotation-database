@@ -1,6 +1,6 @@
-""" annotationDatabase.web.models
+""" annotationDatabase.admin.models
 
-    This file contains the Django models used by the "annotationDatabase.web"
+    This file contains the Django models used by the "annotationDatabase.admin"
     application.
 
     Note that this module is deliberately left empty, as this application

@@ -4,7 +4,7 @@
     Database API.
 
     This is implemented as a separate module so that the functions can be
-    called either by the API view functions, or directly from the web
+    called either by the API view functions, or directly from the admin
     interface.
 """
 import datetime

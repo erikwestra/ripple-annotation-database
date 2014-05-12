@@ -1,6 +1,6 @@
-""" annotationDatabase.web.urls
+""" annotationDatabase.api.urls
 
-    This module defines the urls for the Ripple Annotation Database's "web"
+    This module defines the urls for the Ripple Annotation Database's "api"
     application.
 """
 from django.conf.urls import patterns, include, url

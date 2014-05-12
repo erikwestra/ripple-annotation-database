@@ -1,13 +1,13 @@
-""" annotationDatabase.web.urls
+""" annotationDatabase.admin.urls
 
-    This module defines the urls for the Ripple Annotation Database's "web"
+    This module defines the urls for the Ripple Annotation Database's "admin"
     application.
 """
 from django.conf.urls import patterns, include, url
 
 #############################################################################
 
-urlpatterns = patterns('annotationDatabase.web.views',
+urlpatterns = patterns('annotationDatabase.admin.views',
     url(r'^$',                                       "main"),
     url(r'^add$',                                    "add"),
     url(r'^upload$',                                 "upload"),
