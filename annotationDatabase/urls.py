@@ -22,15 +22,27 @@ urlpatterns += patterns('',
     url(r'^admin/user/', include('annotationDatabase.authentication.urls')),
 )
 
-# Include our admin interface urls.
+# Include our admin urls.
 
 urlpatterns += patterns('',
     url(r'admin/', include("annotationDatabase.admin.urls")),
 )
 
-# Finally, redirect the top-level URL to our admin interface.
+# Include our public urls.
 
 urlpatterns += patterns('',
-    url(r'^$', RedirectView.as_view(url="/admin")),
+    url(r'public/', include("annotationDatabase.public.urls")),
+)
+
+# Include our public admin urls.
+
+urlpatterns += patterns('',
+    url(r'admin/public/', include("annotationDatabase.public.admin.urls")),
+)
+
+# Finally, redirect the top-level URL to our public interface.
+
+urlpatterns += patterns('',
+    url(r'^$', RedirectView.as_view(url="/public")),
 )
 

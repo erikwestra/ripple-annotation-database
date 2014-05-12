@@ -35,6 +35,9 @@ import_setting("DATABASE_URL",                 None)
 import_setting("LOG_DIR",                      os.path.join(ROOT_DIR, "logs"))
 import_setting("ENABLE_DEBUG_LOGGING",         False)
 import_setting("LOGGING_DESTINATION",          "file")
+import_setting("PUBLIC_SIGNUP_PASSWORD",       "")
+import_setting("PUBLIC_TEMPLATE_NAME",         "")
+import_setting("PUBLIC_CONFLICT_EMAIL",        "")
 
 #############################################################################
 
@@ -87,6 +90,7 @@ INSTALLED_APPS = (
     "annotationDatabase.shared",
     "annotationDatabase.api",
     "annotationDatabase.admin",
+    "annotationDatabase.public",
 )
 
 MIDDLEWARE_CLASSES = (

@@ -41,7 +41,9 @@ def main(request):
         options.append(["Add/Edit Users",
                         auth_controller.get_user_admin_url()])
     options.append(["Add/Edit Client Systems", "/admin/clients"])
-
+    options.append(["Edit Public Users",       "/admin/public/users"])
+    options.append(["Edit Public Accounts",    "/admin/public/accounts"])
+    options.append(["--------------", None])
     options.append(["Change Password",
                     auth_controller.get_change_password_url()])
     options.append(["Log Out", auth_controller.get_logout_url()])

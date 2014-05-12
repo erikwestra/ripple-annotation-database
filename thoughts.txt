@@ -1,0 +1,47 @@
+Thoughts on the Ripple Annotation Database
+------------------------------------------
+
+ * Have a "public" app that implements the public side of the Annotation
+   Database.  This is where suitably authorised users can self-annotate their
+   accounts.
+
+ * The "/" URL should redirect to "/public".  To access the admin site, the
+   user will have to enter the "/admin" URL, or click on the "admin" link from
+   the main "/public" page.
+
+ * The main page should handle both new and existing users:
+
+        Welcome to the Ripple Annotation Database
+
+        If you are a new user, please enter the access password you have been
+        given:
+
+            Password: [___________________]
+
+                  <Sign Up>
+
+        For existing users, please enter your username and password to sign in:
+
+            Username: [__________________]
+
+            Password: [__________________]
+
+                  <Sign In>
+
+                                                            <Admin Interface>
+
+ * Now, the "/public/home" page.  What should this look like?
+
+    I guess just a menu of options:
+
+        Add Ripple Account    (/public/accounts/add)
+        View Ripple Accounts  (/public/accounts/list)
+        Change Password       (/public/password)
+        Sign Out              (/public/signout)
+
+ * With these options implemented, we need one more feature: an "admin" page
+   for the public interface.  This is where an administrator can edit the
+   "public" app's data structures.
+
+ * Two commands: Edit Public Users, and Edit Public Accounts.
+
