@@ -16,6 +16,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from annotationDatabase.authentication import auth_controller
 
 from annotationDatabase.shared.models import *
+from annotationDatabase.shared.lib    import logicalExpressions
 
 from annotationDatabase.api import functions
 
@@ -481,11 +482,7 @@ def search(request):
     if request.method == "GET":
         # This is the first time we've displayed this page -> prepare our CGI
         # parameters.
-        data = []
-        for row in range(3):
-            data.append({'key'   : "",
-                         'value' : ""})
-
+        query   = ""
         err_msg = None
 
     elif request.method == "POST":
@@ -493,48 +490,24 @@ def search(request):
         if request.POST['submit'] == "Search":
             # The user is attempting to submit the form.  Extract the submitted
             # form data.
-
             err_msg = None # initially.
 
-            data = []
-            bad_data = False # initially.
-            for row in range(3):
-                key   = request.POST.get("key-%d" % row, "")
-                value = request.POST.get("value-%d" % row, "")
+            query = request.POST.get("query", "")
 
-                data.append({'key'   : key,
-                             'value' : value})
-
-                if ((key != "" or value != "") and
-                    (key == "" or value == "")):
-                    bad_data = True
-
-            if bad_data:
-                err_msg = "You must enter all information on each row."
-
-            if err_msg == None:
-                criteria = []
-                for row in data:
-                    if row['key'] != "" and row['value'] != "":
-                        key = row['key']
-                        key = key.replace("&", "%26")
-                        key = key.replace("=", "%3D")
-                        value = row['value']
-                        value = value.replace("&", "%26")
-                        value = value.replace("=", "%3D")
-                        criteria.append(key + "=" + value)
-
-                if len(criteria) == 0:
-                    err_msg = "You haven't entered any data."
+            expression = logicalExpressions.parse(query)
+            if expression == None:
+                err_msg = "Syntax error"
 
             if err_msg == None:
                 # Redirect the user to display the matching accounts.
-                return HttpResponseRedirect("/admin/search_results?" +
-                                            "&".join(criteria))
+                query = query.replace("&", "%26")
+                query = query.replace("=", "%3D")
+                return HttpResponseRedirect("/admin/search_results" +
+                                            "?query=" + query)
         elif request.POST['submit'] == "Cancel":
             return HttpResponseRedirect("/admin")
 
-    return render(request, "admin/search.html", {'data'    : data,
+    return render(request, "admin/search.html", {'query'   : query,
                                                  'err_msg' : err_msg})
 
 #############################################################################
@@ -555,13 +528,9 @@ def search_results(request):
         return HttpResponse("Bad HTTP Method")
 
     page = params.get("page", 1)
+    query = params.get("query", "")
 
-    criteria = []
-    for key,value in params.items():
-        if key != "page":
-            criteria.append([key, value])
-
-    response = functions.search(criteria)
+    response = functions.search(query)
     if not response['success']:
         print response # Fix error handling later.
         return HttpResponseRedirect("/admin")
@@ -581,7 +550,7 @@ def search_results(request):
         return HttpResponseRedirect("/admin")
 
     return render(request, "admin/view_search_results.html",
-                  {'criteria'  : criteria,
+                  {'query'     : query,
                    'page'      : page,
                    'num_pages' : paginator.num_pages,
                    'accounts'  : accounts})

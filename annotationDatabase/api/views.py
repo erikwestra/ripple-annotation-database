@@ -226,13 +226,15 @@ def search(request):
                                                     'authentication token'}),
                             content_type="application/json")
 
-    criteria = []
-    for key in params.keys():
-        if key != "auth_token":
-            value = params[key]
-            criteria.append([key, value])
+    if "query" not in params:
+        return HttpResponse(json.dumps({'success' : False,
+                                        'error'   : 'Missing required ' +
+                                                    '"query" parameter'}),
+                            content_type="application/json")
 
-    response = functions.search(criteria)
+    query = params['query']
+
+    response = functions.search(query)
     return HttpResponse(json.dumps(response), content_type="application/json")
 
 #############################################################################

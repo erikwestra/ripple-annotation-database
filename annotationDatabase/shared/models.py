@@ -8,10 +8,18 @@ from django.db import models
 #############################################################################
 
 class AnnotationKey(models.Model):
-    """ A single unique key value used by one or more annotations.
+    """ A single unique annotation key used by one or more annotations.
     """
     id  = models.AutoField(primary_key=True)
     key = models.TextField(unique=True, db_index=True)
+
+#############################################################################
+
+class AnnotationValue(models.Model):
+    """ A single unique annotation value used by one or more annotations.
+    """
+    id    = models.AutoField(primary_key=True)
+    value = models.TextField(unique=True, db_index=True)
 
 #############################################################################
 
@@ -35,15 +43,39 @@ class AnnotationBatch(models.Model):
 
 class Annotation(models.Model):
     """ A single uploaded annotation value.
+
+        Note that the Annotation records are never deleted or overwritten; they
+        provide an audit trail of the changes made to the annotation values
+        over time.
     """
     id        = models.AutoField(primary_key=True)
     batch     = models.ForeignKey(AnnotationBatch)
     account   = models.ForeignKey(Account)
     key       = models.ForeignKey(AnnotationKey)
-    value     = models.TextField()
+    value     = models.ForeignKey(AnnotationValue, null=True)
     hidden    = models.BooleanField(default=False)
     hidden_at = models.DateTimeField(null=True)
     hidden_by = models.TextField(null=True)
+
+#############################################################################
+
+class CurrentAnnotation(models.Model):
+    """ A single annotation currently in use.
+
+        There is one and only one CurrentAnnotation record for every
+        combination of account and annotation key.  This is distinct from
+        the Annotation record, which holds annotations which may once have
+        applied but have now been overwritten.
+    """
+    id      = models.AutoField(primary_key=True)
+    account = models.ForeignKey(Account)
+    key     = models.ForeignKey(AnnotationKey)
+    value   = models.ForeignKey(AnnotationValue)
+
+    class Meta:
+        index_together = [
+            ["key", "value"],
+        ]
 
 #############################################################################
 

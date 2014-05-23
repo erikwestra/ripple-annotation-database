@@ -68,6 +68,73 @@ class AddTestCase(django.test.TestCase):
             self.fail(response['error'])
         self.assertItemsEqual(response.keys(), ['success', 'batch_num'])
 
+
+    def test_add_updates_current_annotation(self):
+        """ Check that "/add" updates the CurrentAnnotation record.
+        """
+        auth_token = helpers.get_auth_token_for_testing()
+
+        # Post an annotation with key "status" and value "1" for account "r123".
+
+        batch = {'user_id'     : "erik",
+                 'auth_token'  : auth_token,
+                 'annotations' : [
+                     dict(account="r123", key="status", value="1")
+                 ]
+                }
+
+        response = self.client.post("/add", data=json.dumps(batch),
+                                    content_type="application/json")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], "application/json")
+
+        response = json.loads(response.content)
+
+        if not response['success']:
+            self.fail(response['error'])
+
+        # Check that we have a CurrentAnnotation record for this annotation.
+
+        try:
+            annotation = CurrentAnnotation.objects.get(account__address="r123",
+                                                       key__key="status")
+        except CurrentAnnotation.DoesNotExist:
+            self.fail("CurrentAnnotation record not found!")
+
+        self.assertEqual(annotation.value.value, "1")
+
+        # Now post another annotation for the same key and account, setting the
+        # value to "2".  This should overwrite the existing CurrentAnnotation
+        # record.
+
+        batch = {'user_id'     : "erik",
+                 'auth_token'  : auth_token,
+                 'annotations' : [
+                     dict(account="r123", key="status", value="2")
+                 ]
+                }
+
+        response = self.client.post("/add", data=json.dumps(batch),
+                                    content_type="application/json")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], "application/json")
+
+        response = json.loads(response.content)
+
+        if not response['success']:
+            self.fail(response['error'])
+
+        # Finally, get the CurrentAnnotation record and check that it's been
+        # updated.
+
+        try:
+            annotation = CurrentAnnotation.objects.get(account__address="r123",
+                                                       key__key="status")
+        except CurrentAnnotation.DoesNotExist:
+            self.fail("CurrentAnnotation record not found!")
+
+        self.assertEqual(annotation.value.value, "2")
+
 #############################################################################
 
 class HideTestCase(django.test.TestCase):
@@ -114,6 +181,103 @@ class HideTestCase(django.test.TestCase):
 
         self.assertEqual(annotation.hidden,    True)
         self.assertEqual(annotation.hidden_by, "erik")
+
+
+    def test_hide_updates_current_annotation(self):
+        """ Check that "/hide" updates the CurrentAnnotation record.
+        """
+        auth_token = helpers.get_auth_token_for_testing()
+
+        # Post an annotation with key "owner_id" and value "101" for account
+        # "r123".
+
+        batch = {'user_id'     : "erik",
+                 'auth_token'  : auth_token,
+                 'annotations' : [
+                     dict(account="r123", key="owner_id", value="101")
+                 ]
+                }
+
+        response = self.client.post("/add", data=json.dumps(batch),
+                                    content_type="application/json")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], "application/json")
+
+        response = json.loads(response.content)
+
+        if not response['success']:
+            self.fail(response['error'])
+
+        # Check that we have a CurrentAnnotation record for this annotation.
+
+        try:
+            annotation = CurrentAnnotation.objects.get(account__address="r123",
+                                                       key__key="owner_id")
+        except CurrentAnnotation.DoesNotExist:
+            self.fail("CurrentAnnotation record not found!")
+
+        self.assertEqual(annotation.value.value, "101")
+
+        # Now post another annotation for the same key and account, setting the
+        # value to "102".  This should overwrite the existing CurrentAnnotation
+        # record.  At the same time, we remember the batch number for this
+        # annotation batch.
+
+        batch = {'user_id'     : "erik",
+                 'auth_token'  : auth_token,
+                 'annotations' : [
+                     dict(account="r123", key="owner_id", value="102")
+                 ]
+                }
+
+        response = self.client.post("/add", data=json.dumps(batch),
+                                    content_type="application/json")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], "application/json")
+
+        response = json.loads(response.content)
+
+        if not response['success']:
+            self.fail(response['error'])
+
+        batch_num = response['batch_num']
+
+        # Get the CurrentAnnotation record and check that it's been updated.
+
+        try:
+            annotation = CurrentAnnotation.objects.get(account__address="r123",
+                                                       key__key="owner_id")
+        except CurrentAnnotation.DoesNotExist:
+            self.fail("CurrentAnnotation record not found!")
+
+        self.assertEqual(annotation.value.value, "102")
+
+        # Now hide the second annotation.  This should return the
+        # CurrentAnnotation value back to "101".
+
+        response = self.client.get("/hide", data={'user_id'    : "erik",
+                                                  'auth_token' : auth_token,
+                                                  'batch_num'  : batch_num,
+                                                  'account'    : "r123"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], "application/json")
+
+        response = json.loads(response.content)
+
+        if not response['success']:
+            self.fail(response['error'])
+
+        # Finally, check that the CurrentAnnotation record has been set back to
+        # the previous value.
+
+        try:
+            annotation = CurrentAnnotation.objects.get(account__address="r123",
+                                                       key__key="owner_id")
+        except CurrentAnnotation.DoesNotExist:
+            self.fail("CurrentAnnotation record not found!")
+
+        self.assertEqual(annotation.value.value, "101")
 
 #############################################################################
 
@@ -352,17 +516,17 @@ class SearchTestCase(django.test.TestCase):
 
         response = self.client.get("/search",
                                    data={'auth_token' : auth_token,
-                                         'owner'      : "erik"})
+                                         'query'      : 'owner="erik"'})
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['Content-Type'], "application/json")
 
         response = json.loads(response.content)
 
-        self.assertItemsEqual(response.keys(), ['success', 'accounts'])
         if not response['success']:
             self.fail(response['error'])
 
+        self.assertItemsEqual(response.keys(), ['success', 'accounts'])
         self.assertTrue("r123" in response['accounts'])
         self.assertTrue("r124" in response['accounts'])
 

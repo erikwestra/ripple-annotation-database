@@ -115,20 +115,12 @@
     </div>
 
     <table border="0" cellspacing="0" cellpadding="5" style="margin-left:40px">
-  {% for row in criteria %}
       <tr>
-        <td nowrap class="value white_text right">
-          {{ row.0 }}
-        </td>
-        <td nowrap class="value white_text centre">
-          =
-        </td>
-        <td nowrap class="value white_text left">
-          {{ row.1 }}
+        <td class="value white-text centre">
+          {{ query }}
         </td>
       </tr>
-  {% endfor %}
-</table>
+    </table>
 
     <div class="heading">
       Matching Accounts:

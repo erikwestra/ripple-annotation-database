@@ -604,23 +604,57 @@ The Ripple Annotation API currently supports the following endpoints:
 > 
 > __`/search`__
 > 
-> > Search for accounts which match the given set of query parameters.
+> > Search for accounts which match the given search query,
 > > 
-> > The following query string parameter must be supplied:
+> > The following query string parameters must be supplied:
 > > 
 > > > `auth_token` _(required)_
 > > > 
 > > > > The calling system's authentication token.
+> > > 
+> > > 'query' _(required)_
+> > > 
+> > > > A string containing the query to search against.  Note that any "`&`"
+> > > > characters in the query string must be replaced with "`%26`", and any
+> > > > "`=`" characters must be replaced with "`%3D`".  This avoids confusion
+> > > > when the query-string parameters are parsed by the server.
 > > 
-> > Any additional query string parameters are used to search for accounts
-> > which have the given annotation value.  For example, the following API
-> > call:
+> > The search query consists of one or more _query terms_, where each query
+> > term is a string of the form:
 > > 
-> > > `/search?auth_token=123&primary=RL&secondary=CST`
+> > > `<annotation_key> <comparison> <value>`
 > > 
-> > will return only those accounts which have an annotation named "primary"
-> > with the value "RL" and an annotation named "secondary" with the value
-> > "CST".
+> > For example:
+> > 
+> > > `name = "john"`  
+> > > `status != 'CURRENT'`
+> > 
+> > Within a query term, the `<annotation_key>` is the name of the annotation
+> > that you are comparing, `<comparison>` is the type of comparison you want
+> > to do, and `<value>` is a string (surrounded by single or double quotes)
+> > that you want to compare against.
+> > 
+> > The following comparison operators are currently supported:
+> > 
+> > > `=`  
+> > > `<`  
+> > > `>`  
+> > > `<=`  
+> > > `>=`  
+> > > `!=`
+> > 
+> > > > _Note that the `<` and `>` operators perform alphanumeric comparisons as
+> > > > all annotation values are treated as strings._
+> > 
+> > The search query can consist of just one query term, or it can consist of
+> > multiple terms, surrounded by parentheses and joined with `and`, `or` or
+> > `not` operators.  For example:
+> > 
+> > > `(name = "john") and (status != "CURRENT")`  
+> > > `not ((name = "john") or (name = "harry"))`  
+> > 
+> > The search query is used to identify those accounts which have current
+> > annotation values matching the supplied search term(s).
 > > 
 > > Upon completion, the server will return an HTTP status code of `200` (OK),
 > > and the body of the response will have a content-type value of

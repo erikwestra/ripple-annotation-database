@@ -12,10 +12,14 @@ import time
 
 import simplejson as json
 
+from django.db.models      import Q
 from django.utils.timezone import utc
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 from annotationDatabase.shared.models import *
+from annotationDatabase.shared.lib    import logicalExpressions
+
+from annotationDatabase.api import helpers
 
 #############################################################################
 
@@ -120,15 +124,26 @@ def add(batch):
             annotationKey.key = entry['key']
             annotationKey.save()
 
+        try:
+            annotationValue = AnnotationValue.objects.get(value=entry['value'])
+        except AnnotationValue.DoesNotExist:
+            annotationValue = AnnotationValue()
+            annotationValue.value = entry['value']
+            annotationValue.save()
+
         annotation = Annotation()
         annotation.batch     = annotationBatch
         annotation.account   = account
         annotation.key       = annotationKey
-        annotation.value     = entry['value']
+        annotation.value     = annotationValue
         annotation.hidden    = False
         annotation.hidden_at = None
         annotation.hidden_by = None
         annotation.save()
+
+        helpers.set_current_annotation(entry['account'],
+                                       entry['key'],
+                                       entry['value'])
 
     return {'success'   : True,
             'batch_num' : annotationBatch.id}
@@ -210,6 +225,38 @@ def hide(user_id, batch_num, account=None, annotation=None):
         annotation.hidden_at = datetime.datetime.utcnow().replace(tzinfo=utc)
         annotation.hidden_by = user_id
         annotation.save()
+
+    # Calculate the most recent value for the annotations which are now hidden.
+
+    annotations_to_recalculate = [] # List of (account, key) tuples.
+
+    for annotation in annotations_to_hide:
+        annotations_to_recalculate.append([annotation.account, annotation.key])
+
+    for account,key in annotations_to_recalculate:
+        cur_value     = None # initially.
+        cur_timestamp = None # ditto.
+        for annotation in Annotation.objects.filter(account=account, key=key):
+            if annotation.hidden: continue
+
+            timestamp = annotation.batch.timestamp
+            value     = annotation.value.value
+
+            if cur_value == None:
+                cur_value     = value
+                cur_timestamp = timestamp
+            else:
+                if timestamp > cur_timestamp:
+                    # Use the most recent value.
+                    cur_value     = value
+                    cur_timestamp = timestamp
+
+        if cur_value != None:
+            helpers.set_current_annotation(account.address, key.key, cur_value)
+        else:
+            helpers.set_current_annotation(account.address, key.key, "")
+
+    # That's all, folks!
 
     return {'success' : True}
 
@@ -372,7 +419,7 @@ def get(batch_number):
     for annotation in Annotation.objects.filter(batch=annotationBatch):
         annotations.append({'account' : annotation.account.address,
                             'key'     : annotation.key.key,
-                            'value'   : annotation.value,
+                            'value'   : annotation.value.value,
                             'hidden'  : annotation.hidden})
         if annotation.hidden:
             hidden_at = int(time.mktime(annotation.hidden_at.timetuple()))
@@ -483,27 +530,12 @@ def account(account):
         return {'success' : False,
                 'error'   : "No such account"}
 
-    values = {} # Maps annotation key to [timestamp, value] tuple.
-
-    for annotation in Annotation.objects.filter(account=account):
-        if annotation.hidden: continue
-
-        key       = annotation.key.key
-        timestamp = annotation.batch.timestamp
-        value     = annotation.value
-
-        if key not in values:
-            values[key] = [timestamp, value]
-        else:
-            prevTimestamp,prevValue = values[key]
-            if timestamp > prevTimestamp:
-                # Use the most recent value.
-                values[key][1] = value
+    current_annotations = CurrentAnnotation.objects.filter(account=account)
 
     annotations = []
-    for key in sorted(values.keys()):
-        annotations.append({'key'   : key,
-                            'value' : values[key][1]})
+    for annotation in current_annotations.order_by("key__key"):
+        annotations.append({'key'   : annotation.key.key,
+                            'value' : annotation.value.value})
 
     return {'success'     : True,
             'annotations' : annotations}
@@ -613,7 +645,7 @@ def account_history(account):
         timestamp = int(time.mktime(timetuple))
 
         history_entry = {'batch_number' : annotation.batch.id,
-                         'value'        : annotation.value,
+                         'value'        : annotation.value.value,
                          'timestamp'    : timestamp,
                          'user_id'      : annotation.batch.user_id,
                          'hidden'       : annotation.hidden}
@@ -631,15 +663,47 @@ def account_history(account):
 
 #############################################################################
 
-def search(criteria):
-    """ Return a list of the accounts which match the given annotation values.
+def search(query):
+    """ Return a list of the accounts which match the given search query
 
-        The parameters are as follows:
+        'query' should be a string containing the query to search against.
 
-            'criteria'
+        The search query consists of one or more query terms, where each query
+        term is a string of the form:
 
-                A list of (key,value) tuples, specifying the annotations and
-                their required values.
+            <annotation_key> <comparison> <value>
+
+        For example:
+
+            name = "john"
+            status != 'CURRENT'
+
+        Within a query term, the <annotation_key> is the name of the annotation
+        that you are comparing, <comparison> is the type of comparison you want
+        to do, and <value> is a string (surrounded by single or double quotes)
+        that you want to compare against.
+
+        The following comparison operators are currently supported:
+
+            =
+            <
+            >
+            <=
+            >=
+            !=
+
+        Note that the '<' and '>' operators perform alphanumeric comparisons as
+        all annotation values are treated as strings.
+
+        The search query can consist of just one query term, or it can consist
+        of multiple terms, surrounded by parentheses and joined with and, or or
+        not operators. For example:
+
+            (name = "john") and (status != "CURRENT")
+            not ((name = "john") or (name = "harry"))
+
+        The search query is used to identify those accounts which have current
+        annotation values matching the supplied search term(s).
 
         If the request was successful, we return a dictionary which looks like
         this:
@@ -648,7 +712,7 @@ def search(criteria):
               'accounts' : [...]}
 
         where 'accounts' is a list of strings identifying the Ripple accounts
-        which have the given annotation values.
+        which have matching annotation values.
 
         If an error occurred, we return a dictionary which looks like this:
 
@@ -656,77 +720,40 @@ def search(criteria):
              'error'   : "..."}
 
         where 'error' is a string describing why the request failed.
-
-        Note that the implementation of this function is quite simplistic at
-        the moment -- it's not optimised to handle overwritten values
-        efficiently.
     """
-    # Start by searching for all accounts which have the given annotation
-    # values.  Note that they may have been overwritten...we then have to
-    # filter out accounts which no longer have these values.
+    expression = logicalExpressions.parse(query)
 
-    matching_accounts = None # initially.
-    for key,value in criteria:
-        try:
-            annotationKey = AnnotationKey.objects.get(key=key)
-        except AnnotationKey.DoesNotExist:
-            continue
+    if expression == None:
+        return {'success' : False,
+                'error'   : "Syntax error in search query"}
 
-        accounts = set() # Set of Account record IDs.
-        for annotation in Annotation.objects.filter(key=annotationKey,
-                                                    value=value):
-            accounts.add(annotation.account.id)
+    def expressionConverter(variable, comparison, value):
+        q1 = Q(key__key=variable)
 
-        if matching_accounts == None:
-            matching_accounts = accounts
-        else:
-            matching_accounts = matching_accounts.intersection(accounts)
+        if comparison == "=":
+            q2 = Q(value__value=value)
+        elif self._comparison == "<":
+            q2 = Q(value_value__lt=value)
+        elif self._comparison == ">":
+            q2 = Q(value_value__gt=value)
+        elif self._comparison == "<=":
+            q2 = Q(value_value__lte=value)
+        elif self._comparison == ">=":
+            q2 = Q(value_value__gte=value)
+        elif self._comparison == "!=":
+            Q2 = ~Q(value__value=value)
 
-    if matching_accounts == None:
-        matching_accounts = set()
+        return q1 & q2
 
-    # We now have a list of all potential accounts which at one stage matched
-    # the search criteria.  See if the search criteria still applies to those
-    # accounts.
+    query   = expression.to_django_query(converter=expressionConverter)
+    results = CurrentAnnotation.objects.filter(query).distinct("account")
 
-    still_matching_accounts = []
-    for account_id in matching_accounts:
-        account = Account.objects.get(id=account_id)
-
-        annotations_by_date = {} # Maps annotation key to [timestamp,value]
-                                 # tuple for most recent value.
-
-        for annotation in Annotation.objects.filter(account=account,
-                                                    hidden=False):
-            if annotation.key.key in annotations_by_date:
-                annotation_entry = annotations_by_date[annotation.key.key]
-                if annotation_entry[0] < annotation.batch.timestamp:
-                    # Remember most recent value.
-                    annotation_entry[0] = annotation.batch.timestamp
-                    annotation_entry[1] = annotation.value
-            else:
-                # This is the first time we've seen this annotation key ->
-                # remember the details.
-                annotation_entry = [annotation.batch.timestamp,
-                                    annotation.value]
-                annotations_by_date[annotation.key.key] = annotation_entry
-
-        # See if the annotation values still match the desired values.
-
-        still_matches = True # initially.
-
-        for key,value in criteria:
-            if annotations_by_date[key][1] != value:
-                still_matches = False
-                break
-
-        if still_matches:
-            still_matching_accounts.append(account.address)
-
-    # Finally, return the still-matching accounts back to the caller.
+    matching_accounts = []
+    for annotation in results:
+        matching_accounts.append(annotation.account.address)
 
     return {'success'  : True,
-            'accounts' : still_matching_accounts}
+            'accounts' : matching_accounts}
 
 #############################################################################
 
@@ -747,8 +774,8 @@ def set_template(template_name, template):
 
                     'annotation' (required)
 
-                        The annotation key value for the desired annotation,
-                        for example, "phone_number".
+                        The annotation key for the desired annotation, for
+                        example, "phone_number".
 
                     'label' (required)
 
