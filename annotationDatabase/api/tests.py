@@ -514,6 +514,9 @@ class SearchTestCase(django.test.TestCase):
         if not response['success']:
             self.fail(response['error'])
 
+        # Check that the "/search" endpoint returns the desired list of
+        # accounts.
+
         response = self.client.get("/search",
                                    data={'auth_token' : auth_token,
                                          'query'      : 'owner="erik"'})
@@ -526,9 +529,32 @@ class SearchTestCase(django.test.TestCase):
         if not response['success']:
             self.fail(response['error'])
 
-        self.assertItemsEqual(response.keys(), ['success', 'accounts'])
+        self.assertItemsEqual(response.keys(),
+                              ['success', 'num_matches', 'num_pages',
+                               'accounts'])
+        self.assertEqual(response['num_matches'], 2)
         self.assertTrue("r123" in response['accounts'])
         self.assertTrue("r124" in response['accounts'])
+
+        # Check that the "/search" endpoint can return just a summary of the
+        # number of matching accounts.
+
+        response = self.client.get("/search",
+                                   data={'auth_token'  : auth_token,
+                                         'query'       : 'owner="erik"',
+                                         'totals_only' : "1"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], "application/json")
+
+        response = json.loads(response.content)
+
+        if not response['success']:
+            self.fail(response['error'])
+
+        self.assertItemsEqual(response.keys(),
+                              ['success', 'num_matches'])
+        self.assertEqual(response['num_matches'], 2)
 
 #############################################################################
 

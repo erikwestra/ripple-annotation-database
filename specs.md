@@ -606,18 +606,35 @@ The Ripple Annotation API currently supports the following endpoints:
 > 
 > > Search for accounts which match the given search query,
 > > 
-> > The following query string parameters must be supplied:
+> > The following query string parameters can be supplied:
 > > 
 > > > `auth_token` _(required)_
 > > > 
 > > > > The calling system's authentication token.
 > > > 
-> > > 'query' _(required)_
+> > > `query` _(required)_
 > > > 
 > > > > A string containing the query to search against.  Note that any "`&`"
 > > > > characters in the query string must be replaced with "`%26`", and any
 > > > > "`=`" characters must be replaced with "`%3D`".  This avoids confusion
 > > > > when the query-string parameters are parsed by the server.
+> > > 
+> > > `page` _(optional)_
+> > > 
+> > > > Which page of results to return.  By default, we return page 1, which
+> > > > is the first page of matching accounts.  Increasing page numbers will
+> > > > return more accounts, ascending in alphabetical order.
+> > > 
+> > > `rpp` _(optional)_
+> > > 
+> > > > The number of results to return per page.  By default, we return a
+> > > > maximum of 1000 accounts in each page of results.
+> > > 
+> > > `total_only` _(optional)_
+> > > 
+> > > > If this is present and has the value '1', the API will only return the
+> > > > number of matching accounts, not the accounts themselves.  Note that in
+> > > > this case, the `page` and `rpp` parameters are ignored.
 > > 
 > > The search query consists of one or more _query terms_, where each query
 > > term is a string of the form:
@@ -664,11 +681,26 @@ The Ripple Annotation API currently supports the following endpoints:
 > > 
 > > >     {
 > > >       success: true,
+> > >       num_matches: /* integer */,
+> > >       num_pages: /* integer */,
 > > >       accounts: [ /* array of matching accounts */ ]
 > > >     }
 > > 
-> > Each entry in the `accounts` array will be the Ripple address of the
-> > matching account, as a string.
+> > where:
+> > 
+> > * `num_matches` is the total number of matching accounts.
+> > <p/>
+> > * `num_pages` is the number of pages of results which will be returned for
+> >   the given `rpp` value.
+> > <p/>
+> > * `accounts` is an array containing the Ripple address of the matching
+> >   accounts.  Note that this array only contains the current page of
+> >   results; additional pages of results can be returned by setting the
+> >   `page` and `rpp` parameters to the appropriate values.
+> > <p/>
+> > 
+> > Note that the `accounts` and `num_pages` fields will not be included in the
+> > response if the `totals_only` parameter was present and had the value '1'.
 > > 
 > > If the request was not successful, the returned JSON object will look like
 > > this:

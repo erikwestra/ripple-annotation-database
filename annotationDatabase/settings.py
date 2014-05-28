@@ -116,13 +116,7 @@ SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
 
 # Set up our database.
 
-if 'test' in sys.argv:
-    # Use SQLite for unit tests.
-    DATABASES = {'default' : {'ENGINE' : "django.db.backends.sqlite3"}}
-else:
-    # Use dj_database_url to extract the database settings from the
-    # DATABASE_URL setting.
-    DATABASES = {'default': dj_database_url.config(default=DATABASE_URL)}
+DATABASES = {'default': dj_database_url.config(default=DATABASE_URL)}
 
 # Set up logging.  We log everything to the console for now.
 
@@ -136,7 +130,7 @@ LOGGING = {
 #            'format' : "%(levelname)s %(asctime)s %(module)s %(message)s",
 #        },
         'simple' : {
-            'format' : "%(levelname)s %(message)s",
+            'format' : "%(pathname)s %(levelname)s %(message)s",
         },
     },
 
@@ -167,6 +161,12 @@ LOGGING = {
 
         'django.db.backends' : {
             'handlers'  : ["null"], # Disable query logging when DEBUG=True.
+            'level'     : "DEBUG",
+            'propagate' : False,
+        },
+
+        'south' : {
+            'handlers'  : ["null"], # Disable logging when running migrations.
             'level'     : "DEBUG",
             'propagate' : False,
         },

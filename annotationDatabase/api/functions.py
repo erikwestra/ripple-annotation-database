@@ -663,10 +663,29 @@ def account_history(account):
 
 #############################################################################
 
-def search(query):
+def search(query, page=1, rpp=1000, totals_only=False):
     """ Return a list of the accounts which match the given search query
 
-        'query' should be a string containing the query to search against.
+        The parameters are as follows:
+
+            'query'
+
+                A string containing the query to search against.
+
+            'page'
+
+                Which page of results to return. Note that page 1 is the first
+                page of search results.
+
+            'rpp'
+
+                The number of results to return per page.
+
+            'totals_only'
+
+                If True, only the total number of matches, not the individual
+                accounts, will be returned.  Note that in this case, the 'page'
+                and 'rpp' parameters do not apply.
 
         The search query consists of one or more query terms, where each query
         term is a string of the form:
@@ -708,11 +727,20 @@ def search(query):
         If the request was successful, we return a dictionary which looks like
         this:
 
-            {'success'   : true,
-              'accounts' : [...]}
+            {'success'     : true,
+             'num_matches' : 999,
+             'num_pages'   : 12,
+              'accounts'   : [...]}
 
-        where 'accounts' is a list of strings identifying the Ripple accounts
-        which have matching annotation values.
+        where 'num_matches' is the number of matching accounts and 'accounts'
+        is a list of strings identifying the Ripple accounts which have
+        matching annotation values.  Note that the 'accounts' list only
+        contains the current page of results; additional pages of results can
+        be returned by setting the 'page' and 'rpp' parameters to the
+        appropriate values.
+
+        If the 'totals_only' parameter was set to True, the returned dictionary
+        will not include the 'accounts' or 'num_pages' entries.
 
         If an error occurred, we return a dictionary which looks like this:
 
@@ -745,15 +773,31 @@ def search(query):
 
         return q1 & q2
 
-    query   = expression.to_django_query(converter=expressionConverter)
-    results = CurrentAnnotation.objects.filter(query).distinct("account")
+    query       = expression.to_django_query(converter=expressionConverter)
+    results     = CurrentAnnotation.objects.filter(query).distinct("account")
+    num_matches = results.count()
 
-    matching_accounts = []
-    for annotation in results:
-        matching_accounts.append(annotation.account.address)
+    if totals_only:
+        return {'success'     : True,
+                'num_matches' : num_matches}
 
-    return {'success'  : True,
-            'accounts' : matching_accounts}
+    paginator = Paginator(results.order_by("account.address"), rpp)
+
+    try:
+        annotations_in_page = paginator.page(page)
+    except PageNotAnInteger:
+        annotations_in_page = paginator.page(1)
+    except EmptyPage:
+        annotations_in_page = []
+
+    accounts = []
+    for annotation in annotations_in_page:
+        accounts.append(annotation.account.address)
+
+    return {'success'     : True,
+            'num_matches' : num_matches,
+            'num_pages'   : paginator.num_pages,
+            'accounts'    : accounts}
 
 #############################################################################
 

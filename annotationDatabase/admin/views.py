@@ -530,7 +530,7 @@ def search_results(request):
     page = params.get("page", 1)
     query = params.get("query", "")
 
-    response = functions.search(query)
+    response = functions.search(query, totals_only=False)
     if not response['success']:
         print response # Fix error handling later.
         return HttpResponseRedirect("/admin")

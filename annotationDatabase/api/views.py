@@ -226,15 +226,33 @@ def search(request):
                                                     'authentication token'}),
                             content_type="application/json")
 
-    if "query" not in params:
+    if "query" in params:
+        query = params['query']
+    else:
         return HttpResponse(json.dumps({'success' : False,
                                         'error'   : 'Missing required ' +
                                                     '"query" parameter'}),
                             content_type="application/json")
 
-    query = params['query']
 
-    response = functions.search(query)
+    if "page" in params:
+        page = params['page']
+    else:
+        page = 1
+
+    if "rpp" in params:
+        rpp = params['rpp']
+    else:
+        rpp = 1000
+
+    if "totals_only" in params:
+        totals_only = (params['totals_only'] == "1")
+    else:
+        totals_only = False
+
+    response = functions.search(query=query, page=page, rpp=rpp,
+                                totals_only=totals_only)
+
     return HttpResponse(json.dumps(response), content_type="application/json")
 
 #############################################################################
