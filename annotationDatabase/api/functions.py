@@ -760,15 +760,15 @@ def search(query, page=1, rpp=1000, totals_only=False):
 
         if comparison == "=":
             q2 = Q(value__value=value)
-        elif self._comparison == "<":
-            q2 = Q(value_value__lt=value)
-        elif self._comparison == ">":
-            q2 = Q(value_value__gt=value)
-        elif self._comparison == "<=":
-            q2 = Q(value_value__lte=value)
-        elif self._comparison == ">=":
-            q2 = Q(value_value__gte=value)
-        elif self._comparison == "!=":
+        elif comparison == "<":
+            q2 = Q(value__value__lt=value)
+        elif comparison == ">":
+            q2 = Q(value__value__gt=value)
+        elif comparison == "<=":
+            q2 = Q(value__value__lte=value)
+        elif comparison == ">=":
+            q2 = Q(value__value__gte=value)
+        elif comparison == "!=":
             Q2 = ~Q(value__value=value)
 
         return q1 & q2

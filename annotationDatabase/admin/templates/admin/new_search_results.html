@@ -1,0 +1,123 @@
+{% extends "shared/base.html" %}
+
+{% block head %}
+  <style type="text/css">
+    code {
+      background: none;
+      color: black;
+      padding: 0;
+      font-size: 100%;
+    }
+
+    .indent {
+      margin-left: 20px;
+    }
+
+    div.gap {
+      height: 10px;
+    }
+
+    p.red {
+      color: red;
+    }
+
+    .fillspace {
+      display: inline-block;
+      margin: 0;
+    }
+
+    .pager-text {
+      font-variant: italic;
+    }
+  </style>
+{% endblock %}
+
+{% block body %}
+  <form method="POST">
+    {% csrf_token %}
+    <h3 class="blue">
+      Search Results
+    </h3>
+
+    <div class="input-group">
+      <input type="text" name="query" class="form-control"
+             placeholder="Search Query" value="{{ query }}"/>
+      <span class="input-group-btn">
+        <button class="btn btn-primary" type="submit"
+                name="submit" value="Search">Search</button>
+      </span>
+    </div>
+
+  {% if err_msg %}
+    <p class="text-left red">
+      {{ err_msg }}
+    </p>
+  {% else %}
+    <div class="gap"></div>
+
+    <div class="form-group">
+      <ul class="pager">
+    {% if page > 1 %}
+        <li class="previous">
+          <a href="?query={{ query }}&page={{ page|add:"-1" }}">
+            &larr; Previous
+          </a>
+        </li>
+    {% else %}
+        <li class="previous disabled"><a href="#">&larr; Previous</a></li>
+    {% endif %}
+
+        <li>
+          <h5 class="blue fillspace">
+            {{ num_matches }} accounts found, viewing page {{ page }} of
+            {{ num_pages }}
+          </h5>
+        </li>
+
+    {% if page < num_pages %}
+        <li class="next">
+          <a href="?query={{ query }}&page={{ page|add:"1" }}">
+            Next &rarr;
+          </a>
+        </li>
+    {% else %}
+        <li class="next disabled"><a href="#">Next &rarr;</a></li>
+    {% endif %}
+      </ul> 
+    </div>
+
+    <div class="gap"</div>
+
+    <table class="table table-striped">
+      <tbody>
+    {% for account in accounts %}
+      <tr>
+        <td nowrap>
+          {{ account }}
+        </td>
+        <td nowrap>
+          <a href="/admin/view_account/{{ account }}">View Annotations</a>
+        </td>
+        <td nowrap>
+          <a href="/admin/view_account_history/{{ account }}">View History</a>
+        </td>
+      </tr>
+    {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="pull-right">
+      <a href="?query={{ query }}&download=1"
+         class="btn btn-primary active"
+         role="button">Download Search Results...</a>
+    </div>
+  {% endif %}
+
+    <div class="pull-left">
+      <a href="{{ done_url }}" class="btn btn-primary active" role="button">
+        Done
+      </a>
+    </div>
+  </form>
+{% endblock %}
+

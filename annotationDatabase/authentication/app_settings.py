@@ -29,6 +29,11 @@ DEFAULT_USER_TYPE = getattr(settings, "AUTHENTICATION_DEFAULT_USER_TYPE",
 MAIN_URL = getattr(settings, "AUTHENTICATION_MAIN_URL",
                    "/")
 
+# The URL to redirect back to if the user cancels a login, or logs out.
+
+LOGGED_OUT_URL = getattr(settings, "AUTHENTICATION_LOGGED_OUT_URL",
+                         "/")
+
 # The number of seconds a session can be idle before it times out.
 
 MAX_IDLE_TIME = getattr(settings, "AUTHENTICATION_MAX_IDLE_TIME",
@@ -38,6 +43,16 @@ MAX_IDLE_TIME = getattr(settings, "AUTHENTICATION_MAX_IDLE_TIME",
 
 LOGIN_HEADING = getattr(settings, "AUTHENTICATION_LOGIN_HEADING",
                         "Login")
+
+# The shortcut icon to use for our various pages, if any.
+
+SHORTCUT_ICON = getattr(settings, "AUTHENTICATION_SHORTCUT_ICON",
+                        None)
+
+# An icon to show next to the heading on our various pages, if any:
+
+HEADING_ICON = getattr(settings, "AUTHENTICATION_HEADING_ICON",
+                       None)
 
 #############################################################################
 

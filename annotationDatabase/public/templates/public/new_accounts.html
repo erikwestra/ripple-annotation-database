@@ -1,0 +1,71 @@
+{% extends "shared/base.html" %}
+
+{% block head %}
+  <style type="text/css">
+    .fillspace {
+      display: inline-block;
+      margin: 0;
+    }
+
+    .pager-text {
+      font-variant: italic;
+    }
+
+    div.gap {
+      height: 10px;
+    }
+  </style>
+{% endblock %}
+
+{% block body %}
+  <h4 class="blue">
+    Ripple Accounts for user {{ username }}
+  </h4>
+
+  <ul class="pager">
+  {% if page > 1 %}
+    <li class="previous">
+      <a href="?page={{ page|add:"-1" }}">&larr; Previous</a>
+    </li>
+  {% else %}
+    <li class="previous disabled"><a href="#">&larr; Previous</a></li>
+  {% endif %}
+
+    <li>
+      <h5 class="blue fillspace">
+        Viewing page {{ page }} of {{ num_pages }}
+      </h5>
+    </li>
+
+  {% if page < num_pages %}
+    <li class="next">
+      <a href="?page={{ page|add:"1" }}">Next &rarr;</a>
+    </li>
+  {% else %}
+    <li class="next disabled"><a href="#">Next &rarr;</a></li>
+  {% endif %}
+  </ul> 
+
+  <table class="table table-striped">
+    <tbody>
+  {% for account in accounts %}
+    <tr>
+      <td nowrap>
+        {{ account }}
+      </td>
+      <td nowrap>
+        <a href="/public/accounts/edit/{{ account }}">Edit</a>
+      </td>
+      <td nowrap>
+        <a href="/public/accounts/remove/{{ account }}">Remove</a>
+      </td>
+    </tr>
+  {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="pull-right">
+    <a href="/public/accounts/add" class="btn btn-primary active"
+       role="button">Add Account...</a>
+  </div>
+{% endblock %}

@@ -1,0 +1,107 @@
+{% extends "shared/base.html" %}
+
+{% block head %}
+  <style type="text/css">
+    .fillspace {
+      display: inline-block;
+      margin: 0;
+    }
+
+    .pager-text {
+      font-variant: italic;
+    }
+
+    div.gap {
+      height: 10px;
+    }
+  </style>
+{% endblock %}
+
+{% block body %}
+  <h4 class="blue">
+    Signed-Up Users
+  </h4>
+
+  <ul class="pager">
+  {% if page > 1 %}
+    <li class="previous">
+      <a href="?page={{ page|add:"-1" }}">&larr; Previous</a>
+    </li>
+  {% else %}
+    <li class="previous disabled"><a href="#">&larr; Previous</a></li>
+  {% endif %}
+
+    <li>
+      <h5 class="blue fillspace">
+        Viewing page {{ page }} of {{ num_pages }}
+      </h5>
+    </li>
+
+  {% if page < num_pages %}
+    <li class="next">
+      <a href="?page={{ page|add:"1" }}">Next &rarr;</a>
+    </li>
+  {% else %}
+    <li class="next disabled"><a href="#">Next &rarr;</a></li>
+  {% endif %}
+  </ul> 
+
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <td nowrap>
+          Username
+        </td>
+        <td nowrap>
+          Status
+        </td>
+        <td nowrap>
+          &nbsp;
+        </td>
+        <td nowrap>
+          &nbsp;
+        </td>
+        <td nowrap>
+          &nbsp;
+        </td>
+      </tr>
+    </thead>
+    <tbody>
+  {% for user in users %}
+    <tr>
+      <td nowrap>
+        {{ user.username }}
+      </td>
+      <td nowrap>
+    {% if user.blocked %}
+          blocked
+    {% else %}
+          active
+    {% endif %}
+      </td>
+      <td nowrap>
+        <a href="/admin/users/{{ user.id }}/accounts?back={{ back }}">
+          View Accounts
+        </a>
+      </td>
+      <td nowrap>
+    {% if user.blocked %}
+        <a href="/admin/users/{{ user.id }}/unblock?back={{ back }}">
+          Unblock
+        </a>
+    {% else %}
+        <a href="/admin/users/{{ user.id }}/block?back={{ back }}">
+          Block
+        </a>
+    {% endif %}
+      </td>
+      <td nowrap>
+        <a href="/admin/users/{{ user.id }}/delete?back={{ back }}">
+          Delete
+        </a>
+      </td>
+    </tr>
+  {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

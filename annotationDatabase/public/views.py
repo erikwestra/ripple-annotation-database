@@ -12,7 +12,7 @@ from django.utils          import timezone
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.conf           import settings
 
-from annotationDatabase.public.models import *
+from annotationDatabase.shared.models import *
 from annotationDatabase.api           import functions
 
 #############################################################################
@@ -24,7 +24,7 @@ def main(request):
     """
     session = get_session(request)
     if session != None:
-        return HttpResponseRedirect("/public/home")
+        return HttpResponseRedirect("/public/accounts")
 
     if request.method == "GET":
         # This is the first time we've displayed this page -> prepare our CGI
@@ -68,9 +68,9 @@ def main(request):
                 signin_err_msg = "You have been blocked by an administrator"
             else:
                 create_session(request, user)
-                return HttpResponseRedirect("/public/home")
+                return HttpResponseRedirect("/public/accounts")
 
-    return render(request, "public/main.html",
+    return render(request, "public/new_main.html",
                   {'signup_err_msg'  : signup_err_msg,
                    'signin_username' : signin_username,
                    'signin_err_msg'  : signin_err_msg})
@@ -141,7 +141,7 @@ def signup(request):
             user.save()
 
             create_session(request, user)
-            return HttpResponseRedirect("/public/home")
+            return HttpResponseRedirect("/public/accounts")
 
     # If we get here, we're going to display the form.  First check that the
     # entered signup password is valid.  This ensures we're not called without
@@ -152,7 +152,7 @@ def signup(request):
 
     # Finally, display the form to the user.
 
-    return render(request, "public/signup.html",
+    return render(request, "public/new_signup.html",
                   {'signup_password' : signup_password,
                    'username'        : username,
                    'password1'       : password1,
@@ -161,8 +161,8 @@ def signup(request):
 
 #############################################################################
 
-def home(request):
-    """ Respond to the "/public/home" URL.
+def accounts(request):
+    """ Respond to the "/public/accounts" URL.
 
         We display the user's Ripple accounts, let them add/edit/remove
         accounts, and access various options such as changing their password,
@@ -172,14 +172,36 @@ def home(request):
     if session == None:
         return HttpResponseRedirect("/public")
 
-    options = []
-    options.append(["Add Ripple Account",   "/public/accounts/add"])
-    options.append(["View Ripple Accounts", "/public/accounts/list"])
-    options.append(["--------------", None])
-    options.append(["Change Password",      "/public/password"])
-    options.append(["Sign Out",             "/public/signout"])
+    if request.method == "GET":
+        params = request.GET
+    elif request.method == "POST":
+        params = request.POST
+    else:
+        return HttpResponse("Bad HTTP Method")
 
-    return render(request, "public/home.html", {'options' : options})
+    page = int(params.get("page", "1"))
+
+    all_accounts = Account.objects.filter(owner=session.user)
+    paginator = Paginator(all_accounts.order_by("address"), 10)
+
+    try:
+        accounts_in_page = paginator.page(page)
+    except PageNotAnInteger:
+        accounts_in_page = paginator.page(1)
+    except EmptyPage:
+        accounts_in_page = []
+
+    accounts = []
+    for account in accounts_in_page:
+        accounts.append(account.address)
+
+    return render(request, "public/new_accounts.html",
+                  {'menus'         : get_public_menus(request),
+                   'current_url'   : "/public/accounts",
+                   'username'      : get_username(request),
+                   'page'          : page,
+                   'num_pages'     : paginator.num_pages,
+                   'accounts'      : accounts})
 
 #############################################################################
 
@@ -206,8 +228,8 @@ def add_account(request):
         # The user is submitting our form.  See what they want to do.
 
         if request.POST.get("submit") == "Cancel":
-            # The user is cancelling -> return to the home page.
-            return HttpResponseRedirect("/public/home")
+            # The user is cancelling -> return to the accounts page.
+            return HttpResponseRedirect("/public/accounts")
 
         # If we get here, the user is trying to add a Ripple account.  Check
         # the entered data.
@@ -232,65 +254,31 @@ def add_account(request):
             except Account.DoesNotExist:
                 existing_account = None
 
-            if existing_account != None:
+            if existing_account != None and existing_account.owner != None:
                 err_msg = ("That Ripple account belongs to someone else.  " +
                            "If you think this is a mistake, please email " +
                            settings.PUBLIC_CONFLICT_EMAIL)
 
         if err_msg == None:
-            account = Account()
-            account.address = address
-            account.owner   = session.user
-            account.save()
-            return HttpResponseRedirect("/public/home")
+            if existing_account != None:
+                existing_account.owner = session.user
+                existing_account.save()
+            else:
+                account = Account()
+                account.address = address
+                account.owner   = session.user
+                account.save()
+
+            return HttpResponseRedirect("/public/accounts")
 
     # Finally, display the form to the user.
 
-    return render(request, "public/add_account.html",
-                  {'address' : address,
-                   'err_msg' : err_msg})
-
-#############################################################################
-
-def select_account(request):
-    """ Respond to the "/public/accounts/list" URL.
-
-        We let the user select a Ripple account to view/add annotations for.
-    """
-    session = get_session(request)
-    if session == None:
-        return HttpResponseRedirect("/public")
-
-    if request.method == "GET":
-        params = request.GET
-    elif request.method == "POST":
-        params = request.POST
-    else:
-        return HttpResponse("Bad HTTP Method")
-
-    page = int(params.get("page", "1"))
-
-    all_accounts = Account.objects.filter(owner=session.user)
-    paginator = Paginator(all_accounts.order_by("address"), 20)
-
-    try:
-        accounts_in_page = paginator.page(page)
-    except PageNotAnInteger:
-        accounts_in_page = paginator.page(1)
-    except EmptyPage:
-        accounts_in_page = []
-
-    accounts = []
-    for account in accounts_in_page:
-        accounts.append(account.address)
-
-    if request.method == "POST" and request.POST['submit'] == "Done":
-        return HttpResponseRedirect("/public/home")
-
-    return render(request, "public/select_account.html",
-                  {'page'      : page,
-                   'num_pages' : paginator.num_pages,
-                   'accounts'  : accounts})
+    return render(request, "public/new_add_account.html",
+                  {'menus'       : get_public_menus(request),
+                   'current_url' : "/public/accounts/add",
+                   'address'     : address,
+                   'err_msg'     : err_msg,
+                  })
 
 #############################################################################
 
@@ -304,8 +292,6 @@ def edit_account(request, account):
         return HttpResponseRedirect("/public")
 
     # Get the annotation template to use.
-
-    TEMPLATE_NAME = "public_annotations"
 
     response = functions.get_template(settings.PUBLIC_TEMPLATE_NAME)
     if not response['success']:
@@ -448,7 +434,7 @@ def edit_account(request, account):
 
         if request.POST.get("submit") == "Cancel":
             # The user is cancelling -> return to the list of accounts.
-            return HttpResponseRedirect("/public/accounts/list")
+            return HttpResponseRedirect("/public/accounts")
 
         # If we get here, the user is trying to save their changes.  Check
         # the entered data.
@@ -501,14 +487,16 @@ def edit_account(request, account):
                                                  'key'     : key,
                                                  'value'   : value})
                 response = functions.add(batch)
-            
-            return HttpResponseRedirect("/public/accounts/list")
+
+            return HttpResponseRedirect("/public/accounts")
 
     # Finally, show our form to the user.
 
-    print repr(annotations)
-    return render(request, "public/edit_account.html",
-                  {'annotations' : annotations})
+    return render(request, "public/new_edit_account.html",
+                  {'menus'       : get_public_menus(request),
+                   'current_url' : "/public/accounts/edit",
+                   'account'     : account,
+                   'annotations' : annotations})
 
 #############################################################################
 
@@ -524,22 +512,21 @@ def remove_account(request, account):
     try:
         account = Account.objects.get(address=account)
     except Account.DoesNotExist:
-        return HttpResponseRedirect("/public/home") # Should never happen.
+        return HttpResponseRedirect("/public/accounts") # Should never happen.
 
     if request.method == "POST":
         if request.POST['submit'] == "Remove":
             # The user confirmed -> remove the account.
             account.delete()
 
-        return HttpResponseRedirect("/public/accounts/list")
+        return HttpResponseRedirect("/public/accounts")
 
     # Display the confirmation dialog.
 
-    return render(request, "public/confirm.html",
-                  {'heading'  : "Remove Ripple Account",
-                   'message'  : 'Are you sure you want to remove the "' +
-                                account.address + '" account?',
-                   'btn_name' : "Remove"})
+    return render(request, "public/new_remove_account.html",
+                  {'menus'       : get_public_menus(request),
+                   'current_url' : "/public/accounts/remove",
+                   'account'     : account})
 
 #############################################################################
 
@@ -557,47 +544,60 @@ def change_password(request):
         # We're displaying the page for the first time -> prepare our CGI
         # parameters.
 
-        password1 = ""
-        password2 = ""
-        err_msg   = None
+        old_password  = ""
+        new_password1 = ""
+        new_password2 = ""
+        err_msg       = None
 
     elif request.method == "POST":
 
         # The user is submitting our form.  See what they want to do.
 
         if request.POST.get("submit") == "Cancel":
-            # The user is cancelling -> return to the home page.
-            return HttpResponseRedirect("/public/home")
+            # The user is cancelling -> return to the accounts page.
+            return HttpResponseRedirect("/public/accounts")
 
         # If we get here, the user is trying to change their password.  Check
         # the entered data.
 
-        password1 = request.POST.get("password1")
-        password2 = request.POST.get("password2")
-        err_msg   = None # initially.
+        old_password  = request.POST.get("old_password")
+        new_password1 = request.POST.get("new_password1")
+        new_password2 = request.POST.get("new_password2")
+        err_msg       = None # initially.
 
-        if password1 in [None, ""]:
-            err_msg = "You must enter a password."
+        if old_password in [None, ""]:
+            err_msg = "You must enter your existing password."
 
         if err_msg == None:
-            if len(password1) < 5:
+            if not session.user.is_password_correct(old_password):
+                err_msg = "That is not your existing password"
+
+        if err_msg == None:
+            if new_password1 in [None, ""]:
+                err_msg = "You must enter a new password."
+
+        if err_msg == None:
+            if len(new_password1) < 5:
                 err_msg = "That password is too short."
 
         if err_msg == None:
-            if password1 != password2:
+            if new_password1 != new_password2:
                 err_msg = "The entered passwords do not match."
 
         if err_msg == None:
-            session.user.set_password(password1)
+            session.user.set_password(new_password1)
             session.user.save()
-            return HttpResponseRedirect("/public/home")
+            return HttpResponseRedirect("/public/accounts")
 
     # Finally, display the form to the user.
 
-    return render(request, "public/change_password.html",
-                  {'password1' : password1,
-                   'password2' : password2,
-                   'err_msg'   : err_msg})
+    return render(request, "public/new_change_password.html",
+                  {'menus'           : get_public_menus(request),
+                   'current_url'     : "/public/accounts/remove",
+                   'old_password'    : old_password,
+                   'new_password1'   : new_password1,
+                   'new_password2'   : new_password2,
+                   'err_msg'         : err_msg})
 
 #############################################################################
 
@@ -650,6 +650,20 @@ def get_session(request):
 
 #############################################################################
 
+def get_username(request):
+    """ Return the username of the currently logged-in user.
+
+        We return the username of the user associated with the given
+        HttpRequest.  If there is no user currently logged in, we return None.
+    """
+    session = get_session(request)
+    if session == None:
+        return None
+    else:
+        return session.user.username
+        
+#############################################################################
+
 def create_session(request, user):
     """ Create a new Session object for the given user and HttpRequest.
     """
@@ -672,4 +686,28 @@ def delete_session(request):
     if session != None:
         session.delete()
     del request.session['public_session_token']
+
+#############################################################################
+
+def get_public_menus(request):
+    """ Return the menus to display at the top of our page.
+
+        The returned value should be passed to a Django template in a template
+        variable named 'menus'.  If this template is based on shared/base.html,
+        the menus will be created automatically.
+    """
+    username_menu_items = [
+        ("Change Password", "/public/password"),
+        ("Sign Out",        "/public/signout"),
+    ]
+
+    username = get_username(request)
+    if username == None:
+        username = "User"
+
+    menus = []
+    menus.append({'title' : username,
+                  'items' : username_menu_items})
+
+    return menus
 

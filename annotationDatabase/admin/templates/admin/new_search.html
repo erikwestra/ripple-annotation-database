@@ -1,0 +1,76 @@
+{% extends "shared/base.html" %}
+
+{% block head %}
+  <style type="text/css">
+    code {
+      background: none;
+      color: black;
+      padding: 0;
+      font-size: 100%;
+    }
+
+    .indent {
+      margin-left: 20px;
+    }
+
+    div.gap {
+      height: 10px;
+    }
+
+    p.red {
+      color: red;
+    }
+  </style>
+{% endblock %}
+
+{% block body %}
+  <form method="POST">
+    {% csrf_token %}
+    <h3 class="blue">
+      Search
+    </h3>
+
+    <p class="text-left">
+      You can search for accounts based on their current annotation values.
+      Simply type a search query into the box below and click the Search
+      button.
+    </p>
+    <p class="text-left">
+      You can enter searches of the form <code>key="value"</code>.  More
+      complicated searches can be built by combining simple searches with
+      <code>and</code>, <code>or</code> or <code>not</code>, for example:
+    </p>
+    <p class="text-left indent">
+      <code>(name="tom") and (status="CURRENT")</code>
+    </p>
+    <p class="text-left indent">
+      <code>not ((name="tom") or (name="dick") or (name="harry"))</code>
+    </p>
+
+    <div class="gap"></div>
+
+    <div class="input-group">
+      <input type="text" name="query" class="form-control"
+             placeholder="Search Query" value="{{ query }}"/>
+      <span class="input-group-btn">
+        <button class="btn btn-primary" type="submit"
+                name="submit" value="Search">Search</button>
+      </span>
+    </div>
+
+    <div class="gap"></div>
+
+  {% if err_msg %}
+        <p class="text-left red">
+          {{ err_msg }}
+        </p>
+  {% endif %}
+
+    <div class="pull-left">
+      <a href="{{ done_url }}" class="btn btn-primary active" role="button">
+        Done
+      </a>
+    </div>
+  </form>
+{% endblock %}
+

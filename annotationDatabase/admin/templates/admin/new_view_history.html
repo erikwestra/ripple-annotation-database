@@ -1,0 +1,103 @@
+{% extends "shared/base.html" %}
+
+{% block head %}
+  <style type="text/css">
+    .fillspace {
+      display: inline-block;
+      margin: 0;
+    }
+
+    .pager-text {
+      font-variant: italic;
+    }
+
+    div.gap {
+      height: 10px;
+    }
+  </style>
+{% endblock %}
+
+{% block body %}
+  <h4 class="blue">
+    Annotation History for Account {{ account }}
+  </h4>
+
+  <ul class="pager">
+  {% if page > 1 %}
+    <li class="previous">
+      <a href="?page={{ page|add:"-1" }}">&larr; Previous</a>
+    </li>
+  {% else %}
+    <li class="previous disabled"><a href="#">&larr; Previous</a></li>
+  {% endif %}
+
+    <li>
+      <h5 class="blue fillspace">
+        Viewing page {{ page }} of {{ num_pages }}
+      </h5>
+    </li>
+
+  {% if page < num_pages %}
+    <li class="next">
+      <a href="?page={{ page|add:"1" }}">Next &rarr;</a>
+    </li>
+  {% else %}
+    <li class="next disabled"><a href="#">Next &rarr;</a></li>
+  {% endif %}
+  </ul> 
+
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <td nowrap>
+          Date/Time
+        </td>
+        <td nowrap>
+          Batch Number
+        </td>
+        <td nowrap>
+          Action
+        </td>
+        <td nowrap>
+          By
+        </td>
+        <td nowrap>
+          Annotation
+        </td>
+        <td nowrap>
+          Value
+        </td>
+      </tr>
+    </thead>
+    <tbody>
+  {% for change in history %}
+    <tr>
+      <td nowrap>
+        {{ change.timestamp|date }} {{ change.timestamp|time }}
+      </td>
+      <td nowrap>
+        {{ change.batch_number }}
+      </td>
+      <td nowrap>
+        {{ change.action|capfirst }}
+      </td>
+      <td nowrap>
+        {{ change.user_id }}
+      </td>
+      <td nowrap>
+        {{ change.key }}
+      </td>
+      <td nowrap>
+        {{ change.value }}
+      </td>
+    </tr>
+  {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="pull-right">
+    <a href="{{ done_url }}" class="btn btn-primary active" role="button">
+      Done
+    </a>
+  </div>
+{% endblock %}

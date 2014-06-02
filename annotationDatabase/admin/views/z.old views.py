@@ -3,7 +3,9 @@
     This module defines the various view functions for the Ripple Annotation
     Database's "admin" application.
 """
+import csv
 import datetime
+import urllib
 import uuid
 
 import simplejson as json
@@ -16,40 +18,11 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from annotationDatabase.authentication import auth_controller
 
 from annotationDatabase.shared.models import *
-from annotationDatabase.shared.lib    import logicalExpressions
+from annotationDatabase.shared.lib    import logicalExpressions, backHandler
 
 from annotationDatabase.api import functions
 
-#############################################################################
-
-def main(request):
-    """ Respond to our top-level "/admin" URL.
-    """
-    if not auth_controller.is_logged_in(request):
-        return auth_controller.redirect_to_login()
-
-    options = []
-    options.append(["Add Annotations",            "/admin/add"])
-    options.append(["Upload Annotations",         "/admin/upload"])
-    options.append(["View Annotation Batches",    "/admin/select_batch"])
-    options.append(["View Account Annotations",   "/admin/select_account"])
-    options.append(["Search",                     "/admin/search"])
-    options.append(["--------------", None])
-    options.append(["View Annotation Templates",  "/admin/templates"])
-    options.append(["Upload Annotation Template", "/admin/templates/upload"])
-    options.append(["--------------", None])
-    if auth_controller.is_admin(request):
-        options.append(["Add/Edit Users",
-                        auth_controller.get_user_admin_url()])
-    options.append(["Add/Edit Client Systems", "/admin/clients"])
-    options.append(["Edit Public Users",       "/admin/public/users"])
-    options.append(["Edit Public Accounts",    "/admin/public/accounts"])
-    options.append(["--------------", None])
-    options.append(["Change Password",
-                    auth_controller.get_change_password_url()])
-    options.append(["Log Out", auth_controller.get_logout_url()])
-
-    return render(request, "admin/main.html", {'options' : options})
+from annotationDatabase.admin.menus import get_admin_menus
 
 #############################################################################
 
@@ -295,7 +268,6 @@ def select_account(request):
     """ Respond to the "/admin/select_account" URL.
 
         We let the user choose an account to view.
-        view the annotations associated with a single account.
     """
     if not auth_controller.is_logged_in(request):
         return auth_controller.redirect_to_login()
@@ -494,9 +466,13 @@ def search(request):
 
             query = request.POST.get("query", "")
 
-            expression = logicalExpressions.parse(query)
-            if expression == None:
-                err_msg = "Syntax error"
+            if query == "":
+                err_msg = "You must enter a search query."
+
+            if err_msg == None:
+                expression = logicalExpressions.parse(query)
+                if expression == None:
+                    err_msg = "Sorry, that is not a valid search query."
 
             if err_msg == None:
                 # Redirect the user to display the matching accounts.
@@ -507,8 +483,14 @@ def search(request):
         elif request.POST['submit'] == "Cancel":
             return HttpResponseRedirect("/admin")
 
-    return render(request, "admin/search.html", {'query'   : query,
-                                                 'err_msg' : err_msg})
+    return render(request, "admin/new_search.html", 
+                  {'title'         : "Ripple Annotation Database",
+                   'heading'       : "Admin Interface",
+                   'menus'         : get_admin_menus(request),
+                   'current_url'   : "/admin/search",
+                   'query'         : query,
+                   'err_msg'       : err_msg,
+                  })
 
 #############################################################################
 
@@ -527,33 +509,45 @@ def search_results(request):
     else:
         return HttpResponse("Bad HTTP Method")
 
-    page = params.get("page", 1)
-    query = params.get("query", "")
+    err_msg  = None # initially.
+    page     = params.get("page", 1)
+    query    = params.get("query", "")
+    download = params.get("download", "")
 
-    response = functions.search(query, totals_only=False)
+    if request.method == "POST" and request.POST['submit'] == "Search":
+        # The user pressed the "Search" button -> reissue the search request.
+        query = query.replace("&", "%26")
+        query = query.replace("=", "%3D")
+        return HttpResponseRedirect("/admin/search_results" +
+                                    "?query=" + query)
+
+    if download == "1":
+        # The user clicked on our "Download Search Results" button.  Return the
+        # search results as a CSV file to download.
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="results.csv"'
+
+        search_results = _download_search_results(query)
+
+        writer = csv.writer(response)
+        for row in search_results:
+            writer.writerow(row)
+
+        return response
+
+    response = functions.search(query, page, rpp=15, totals_only=False)
     if not response['success']:
-        print response # Fix error handling later.
-        return HttpResponseRedirect("/admin")
+        err_msg = response['error']
 
-    # Paginate the list of matching accounts, as required.
-
-    paginator = Paginator(response['accounts'], 15)
-
-    try:
-        accounts = paginator.page(page)
-    except PageNotAnInteger:
-        accounts = paginator.page(1)
-    except EmptyPage:
-        accounts = []
-
-    if request.method == "POST" and request.POST['submit'] == "Done":
-        return HttpResponseRedirect("/admin")
-
-    return render(request, "admin/view_search_results.html",
-                  {'query'     : query,
-                   'page'      : page,
-                   'num_pages' : paginator.num_pages,
-                   'accounts'  : accounts})
+    return render(request, "admin/new_search_results.html",
+                  {'menus'       : get_admin_menus(request),
+                   'current_url' : "/admin/search",
+                   'query'       : query,
+                   'num_matches' : response.get('num_matches', 0),
+                   'num_pages'   : response.get('num_pages', 1),
+                   'err_msg'     : err_msg,
+                   'page'        : page,
+                   'accounts'    : response.get('accounts', [])})
 
 #############################################################################
 
@@ -1079,4 +1073,49 @@ def delete_template(request, template_id):
                    'message'  : 'Are you sure you want to delete the "' +
                                 template.name + '" template?',
                    'btn_name' : "Delete"})
+
+#############################################################################
+#                                                                           #
+#                    P R I V A T E   D E F I N I T I O N S                  #
+#                                                                           #
+#############################################################################
+
+def _download_search_results(query):
+    """ Download the search results for the given search query.
+
+        We return a list of lines of data to return, where each list item is
+        itself a list of the individual values in each row.
+    """
+    lines = [] # List of list of strings.
+    row = []
+    row.append("Search Query:")
+    row.append(query)
+    lines.append(row)
+
+    first = True
+    page  = 1
+
+    while True:
+        response = functions.search(query, page)
+        if not response['success']:
+            lines.append(["Server Error:", response['error']])
+            break
+
+        for account in response['accounts']:
+            row = []
+            if first:
+                row.append("Matching Accounts")
+                first = False
+            else:
+                row.append("")
+            row.append(account)
+            lines.append(row)
+
+        if page <= response['num_pages']:
+            page = page + 1
+            continue
+        else:
+            break
+
+    return lines
 

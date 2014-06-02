@@ -66,7 +66,7 @@ TEMPLATE_DEBUG = DEBUG
 # Application definition
 
 INSTALLED_APPS = (
-    'django.contrib.admin',
+#    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -112,11 +112,23 @@ WSGI_APPLICATION = 'annotationDatabase.wsgi.application'
 
 STATIC_URL = '/static/'
 
-SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
-
 # Set up our database.
 
 DATABASES = {'default': dj_database_url.config(default=DATABASE_URL)}
+
+# Enable static file handling:
+
+STATIC_URL = "/static/"
+
+STATICFILES_DIRS = (
+    (os.path.join(ROOT_DIR, "annotationDatabase", "static")),
+)
+
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+)
+
+SERVE_STATIC_MEDIA = True
 
 # Set up logging.  We log everything to the console for now.
 
@@ -173,7 +185,12 @@ LOGGING = {
     }
 }
 
-# Configure the authentication app.
+# Authentication settings:
 
-AUTHENTICATION_MAIN_URL = "/admin"
+SESSION_ENGINE                = "django.contrib.sessions.backends.signed_cookies"
+AUTHENTICATION_MAIN_URL       = "/admin"
+AUTHENTICATION_LOGGED_OUT_URL = "/public"
+AUTHENTICATION_SHORTCUT_ICON  = STATIC_URL + "images/icon_small.png"
+AUTHENTICATION_HEADING_ICON   = STATIC_URL + "images/icon_large.png"
+AUTHENTICATION_LOGIN_HEADING  = "Admin Login"
 

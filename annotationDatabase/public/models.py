@@ -11,7 +11,7 @@ from django.db import models
 #############################################################################
 
 class User(models.Model):
-    """ An authenticated user of the public interface.
+    """ A signed-up user of the public interface.
     """
     id            = models.AutoField(primary_key=True)
     username      = models.TextField(unique=True, db_index=True)

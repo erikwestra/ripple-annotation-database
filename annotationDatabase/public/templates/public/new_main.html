@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>Ripple Annotation Database</title>
+
+    <link rel="stylesheet"
+          href="{{ STATIC_URL }}css/bootstrap.min.css">
+
+    <link rel="shortcut icon" href="{{ STATIC_URL }}images/icon_small.png">
+
+    <style type="text/css">
+      body {
+        padding-top: 40px;
+        padding-bottom: 40px;
+        background-color: #eee;
+      }
+
+      .main-panel {
+        max-width: 560px;
+        padding: 15px;
+        margin: 0 auto;
+      }
+
+      .main-panel .heading-image {
+        float: none;
+        display: inline-block;
+        vertical-align: middle;
+        margin-right: -4px;
+      }
+
+      .main-panel .heading-text {
+        float: none;
+        display: inline-block;
+        vertical-align:middle;
+        font-size: 30px;
+        font-weight: 500;
+        line-height: 1.1;
+        white-space: nowrap;
+      }
+
+      .gap {
+        height: 10px;
+      }
+
+      .indented-form {
+        max-width: 280px;
+        padding: 15px;
+        margin: 0 auto;
+      }
+
+      .indented-form * {
+        margin: 10px;
+      }
+
+      .error {
+        font-weight: bold;
+        font-style: italic;
+        color: red;
+      }
+
+      .blue {
+        color: #024B8A;
+      }
+
+      .admin-link a:link,
+      .admin-link a:visited,
+      .admin-link a:active,
+      .admin-link a:hover {
+        text-decoration: none;
+        color: #a0a0a0;
+      }
+    </style>
+
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js">
+      </script>
+      <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js">
+      </script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="panel main-panel">
+      <div>
+        <img class="heading-image"
+             src="{{ STATIC_URL }}images/icon_large.png"/><!--
+     --><h2 class="heading-text blue">&nbsp;Ripple Annotation Database</h2>
+      </div>
+
+      <div class="gap"></div>
+
+      Welcome to the Ripple Annotation Database. &nbsp;If you are a new user,
+      please enter the access password you have been given:
+
+      <form method="post" class="indented-form" role="form">
+        {% csrf_token %}
+        <p class="form-static-control">
+        </p>
+        <input type="password" name="signup_password" class="form-control"
+               placeholder="Password"/ autofocus>
+{% if signup_err_msg %}
+        <p class="error">
+          {{ signup_err_msg }}
+        </p>
+{% endif %}
+        <button class="btn btn-lg btn-primary btn-block"
+                type="submit" name="submit" value="Sign Up">
+          Sign Up
+        </button>
+      </form>
+
+      <div class="gap"></div>
+
+      For existing users, please enter your username and password to sign in:
+      <form method="post" class="indented-form" role="form">
+        {% csrf_token %}
+        <input type="text" name="signin_username" class="form-control"
+               placeholder="Username" value="{{ signin_username }}"/>
+        <input type="password" name="signin_password" class="form-control"
+               placeholder="Password"/>
+{% if signin_err_msg %}
+        <p class="error">
+          {{ signin_err_msg }}
+        </p>
+{% endif %}
+        <button class="btn btn-lg btn-primary btn-block"
+                type="submit" name="submit" value="Sign In">
+          Sign In
+        </button>
+      </form>
+
+      <div class="admin-link pull-right">
+        <a href="/admin">Admin Interface</a>
+      </div>
+
+      <div class="gap"></div>
+    </div>
+  </body>
+</html>
+

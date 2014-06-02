@@ -25,14 +25,18 @@ def login(request):
     if request.method == "GET":
         # We're displaying this page for the first time -> set up the defaults.
 
+        print "get"
+
         username = ""
         err_msg  = None
 
     elif request.method == "POST":
 
+        print "post"
+
         if request.POST.get("cancel") != None:
-            # The user cancelled -> return back to the main page.
-            return HttpResponseRedirect(app_settings.MAIN_URL)
+            # The user cancelled -> return to the "logged out" page.
+            return HttpResponseRedirect(app_settings.LOGGED_OUT_URL)
 
         if request.POST.get("submit") != None:
             # The user submitted the form -> check the entered values.
@@ -72,9 +76,11 @@ def login(request):
 
     # If we get here, display the "login" page.
 
-    return render(request, "authentication/login.html",
-                  {'heading'  : app_settings.LOGIN_HEADING,
-                   'username' : username,
-                   'err_msg'  : err_msg,
+    return render(request, "authentication/new_login.html",
+                  {'shortcut_icon' : app_settings.SHORTCUT_ICON,
+                   'heading_icon'  : app_settings.HEADING_ICON,
+                   'heading'       : app_settings.LOGIN_HEADING,
+                   'username'      : username,
+                   'err_msg'       : err_msg,
                   })
 
