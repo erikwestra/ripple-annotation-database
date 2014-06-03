@@ -113,6 +113,14 @@
     </script>
     <script type="text/javascript" src="{{ STATIC_URL }}js/bootstrap.min.js">
     </script>
+
+    {% block extra_imports %}
+    {% endblock %}
+
+    <script language="javascript">
+      {% block scripts %}
+      {% endblock %}
+    </script>
   </body>
 </html>
 

@@ -21,8 +21,10 @@ from annotationDatabase.admin.menus import get_admin_menus
 
 #############################################################################
 
-def select(request):
+def list(request):
     """ Respond to the "/admin/templates" URL.
+
+        We display a list of the uploaded annotation templates.
     """
     if not auth_controller.is_logged_in(request):
         return auth_controller.redirect_to_login()
@@ -36,21 +38,22 @@ def select(request):
 
     page = int(params.get("page", "1"))
 
-    response = functions.list_templates(params.get("page"), rpp=20)
+    response = functions.list_templates(params.get("page"), rpp=8)
     if not response['success']:
-        print response # Fix error handling later.
         return HttpResponseRedirect("/admin")
 
     templates = response['templates']
     num_pages = response['num_pages']
 
-    if request.method == "POST" and request.POST['submit'] == "Done":
-        return HttpResponseRedirect("/admin")
-
-    return render(request, "admin/select_template.html",
-                  {'page'      : page,
-                   'num_pages' : num_pages,
-                   'templates' : templates})
+    return render(request, "admin/new_template_list.html",
+                  {'menus'        : get_admin_menus(request),
+                   'current_url'  : "/admin/templates",
+                   'page_heading' : "Ripple Annotation Database Admin",
+                   'page'         : page,
+                   'num_pages'    : num_pages,
+                   'templates'    : templates,
+                   'back'         : backHandler.encode_current_url(request),
+                   })
 
 #############################################################################
 
@@ -67,7 +70,7 @@ def upload(request):
         err_msg       = None
     elif request.method == "POST":
         if request.POST['submit'] == "Cancel":
-            # The user cancelled -> return back to the main view.
+            # The user cancelled -> return back to the main admin page.
             return HttpResponseRedirect("/admin")
 
         # If we get here, the user is submitting the form.  Try extracting the
@@ -80,6 +83,8 @@ def upload(request):
             err_msg = "Please enter a name for this annotation template."
 
         if err_msg == None:
+            print repr(request.FILES)
+            print repr(request.POST)
             file = request.FILES.get("file")
             if file == None:
                 err_msg = "Please select a file to upload."
@@ -233,24 +238,34 @@ def upload(request):
                 err_msg = response['error']
 
         if err_msg == None:
-            return HttpResponseRedirect("/admin")
+            # Redirect the user to the "view templates" page so they can see
+            # the uploaded template.
+            return HttpResponseRedirect("/admin/templates")
 
-    return render(request, "admin/upload_template.html",
-                  {'name'    : template_name,
-                   'err_msg' : err_msg})
+    return render(request, "admin/new_upload_template.html",
+                  {'menus'        : get_admin_menus(request),
+                   'current_url'  : "/admin/templates/upload",
+                   'page_heading' : "Ripple Annotation Database Admin",
+                   'name'         : template_name,
+                   'err_msg'      : err_msg,
+                  })
 
 #############################################################################
 
 def view(request, template_id):
     """ Respond to the "/admin/templates/view/XXX" URL.
+
+        We let the user view the contents of the given annotation template.
     """
     if not auth_controller.is_logged_in(request):
         return auth_controller.redirect_to_login()
 
+    back_url = backHandler.get_back_param(request, default="/admin")
+
     try:
         template = AnnotationTemplate.objects.get(id=template_id)
     except AnnotationTemplate.DoesNotExist:
-        return HttpResponseRedirect("/admin/templates") # Should never happen.
+        return HttpResponseRedirect(back_url) # Should never happen.
 
     if request.method == "GET":
         params = request.GET
@@ -323,21 +338,19 @@ def view(request, template_id):
         while len(entry['extra']) < max_num_extra:
             entry['extra'].append("")
 
-    # If the user clicked on the "Done" button, return back to the main list of
-    # templates.
-
-    if request.method == "POST":
-        if request.POST.get("submit") == "Done":
-            return HttpResponseRedirect("/admin/templates")
-
     # Finally, display the admin page.
 
-    return render(request, "admin/view_template.html",
-                  {'page'        : page,
-                   'num_pages'   : paginator.num_pages,
-                   'template'    : template,
-                   'entries'     : entries,
-                   'extra_range' : range(max_num_extra)})
+    return render(request, "admin/new_view_template.html",
+                  {'menus'        : get_admin_menus(request),
+                   'current_url'  : "/admin/templates/view/XXX",
+                   'page_heading' : "Ripple Annotation Database Admin",
+                   'page'         : page,
+                   'num_pages'    : paginator.num_pages,
+                   'template'     : template,
+                   'entries'      : entries,
+                   'extra_range'  : range(max_num_extra),
+                   'done_url'     : back_url,
+                  })
 
 #############################################################################
 
@@ -347,24 +360,30 @@ def delete(request, template_id):
     if not auth_controller.is_logged_in(request):
         return auth_controller.redirect_to_login()
 
+    back_url = backHandler.get_back_param(request, default="/admin")
+
     try:
         template = AnnotationTemplate.objects.get(id=template_id)
     except AnnotationTemplate.DoesNotExist:
-        return HttpResponseRedirect("/admin/templates") # Should never happen.
+        return HttpResponseRedirect(back_url) # Should never happen.
 
     if request.method == "POST":
-        if request.POST['submit'] == "Delete":
+        if request.POST['submit'] == "Submit":
             # The user confirmed -> delete the template and all its entries.
             AnnotationTemplateEntry.objects.filter(template=template).delete()
             template.delete()
 
-        return HttpResponseRedirect("/admin/templates")
+        return HttpResponseRedirect(back_url)
 
     # Display the confirmation dialog.
 
-    return render(request, "admin/confirm.html",
-                  {'heading'  : "Delete Annotation Template",
-                   'message'  : 'Are you sure you want to delete the "' +
-                                template.name + '" template?',
-                   'btn_name' : "Delete"})
+    encoded_url = backHandler.encode_url(back_url)
+    return render(request, "admin/new_confirm.html",
+                  {'menus'         : get_admin_menus(request),
+                   'current_url'   : "/admin/templates/delete/XXX",
+                   'heading'       : "Delete Annotation Template",
+                   'message'       : "Are you sure you want to delete the " +
+                                     '"' + template.name + '" template?',
+                   'hidden_vars'   : dict(back=encoded_url),
+                   'submit_label'  : "Delete"})
 

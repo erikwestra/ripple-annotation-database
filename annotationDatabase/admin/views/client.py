@@ -18,8 +18,10 @@ from annotationDatabase.admin.menus import get_admin_menus
 
 #############################################################################
 
-def view(request):
+def list(request):
     """ Respond to the "/admin/clients" URL.
+
+        We display a list of the authorized client systems.
     """
     if not auth_controller.is_logged_in(request):
         return auth_controller.redirect_to_login()
@@ -50,10 +52,15 @@ def view(request):
         elif request.POST['submit'] == "Add":
             return HttpResponseRedirect("/admin/clients/add")
 
-    return render(request, "admin/view_clients.html",
-                  {'page'      : page,
-                   'num_pages' : paginator.num_pages,
-                   'clients'   : clients})
+    return render(request, "admin/new_client_list.html",
+                  {'menus'        : get_admin_menus(request),
+                   'current_url'  : "/admin/clients",
+                   'page_heading' : "Ripple Annotation Database Admin",
+                   'page'         : page,
+                   'num_pages'    : paginator.num_pages,
+                   'clients'      : clients,
+                   'back'         : backHandler.encode_current_url(request),
+                   })
 
 #############################################################################
 
@@ -62,6 +69,8 @@ def add(request):
     """
     if not auth_controller.is_logged_in(request):
         return auth_controller.redirect_to_login()
+
+    back_url = backHandler.get_back_param(request, default="/admin")
 
     if request.method == "GET":
         # This is the first time we've displayed this page -> prepare our CGI
@@ -89,24 +98,26 @@ def add(request):
                     err_msg = "There is already a client with that name."
 
             if err_msg == None:
-                # The entered data is acceptable -> create the new client.
                 client = Client()
                 client.name       = name
                 client.auth_token = uuid.uuid4().hex
                 client.save()
 
-                # Return the caller back to the "list clients" view.
+                return HttpResponseRedirect(back_url)
 
-                return HttpResponseRedirect("/admin/clients")
         elif request.POST['submit'] == "Cancel":
-            return HttpResponseRedirect("/admin/clients")
+            return HttpResponseRedirect(back_url)
 
     # If we get here, we're going to display the "Add Client" page.  Do so.
 
-    return render(request, "admin/edit_client.html",
-                  {'heading' : "Add Client System",
-                   'name'    : name,
-                   'err_msg' : err_msg})
+    return render(request, "admin/new_edit_client.html",
+                  {'menus'        : get_admin_menus(request),
+                   'current_url'  : "/admin/clients/add",
+                   'page_heading' : "Ripple Annotation Database Admin",
+                   'heading'      : "Add Client System",
+                   'back'         : backHandler.encode_url(back_url),
+                   'name'         : name,
+                   'err_msg'      : err_msg})
 
 #############################################################################
 
@@ -116,10 +127,12 @@ def edit(request, client_id):
     if not auth_controller.is_logged_in(request):
         return auth_controller.redirect_to_login()
 
+    back_url = backHandler.get_back_param(request, default="/admin")
+
     try:
         client = Client.objects.get(id=client_id)
     except Client.DoesNotExist:
-        return HttpResponseRedirect("/admin/clients") # Should never happen.
+        return HttpResponseRedirect(back_url) # Should never happen.
 
     if request.method == "GET":
         # This is the first time we've displayed this page -> prepare our CGI
@@ -151,18 +164,20 @@ def edit(request, client_id):
                 client.name = name
                 client.save()
 
-                # Return the caller back to the "list clients" view.
-
-                return HttpResponseRedirect("/admin/clients")
+                return HttpResponseRedirect(back_url)
         elif request.POST['submit'] == "Cancel":
-            return HttpResponseRedirect("/admin/clients")
+            return HttpResponseRedirect(back_url)
 
     # If we get here, we're going to display the "Edit Client" page.  Do so.
 
-    return render(request, "admin/edit_client.html",
-                  {'heading' : "Edit Client System",
-                   'name'    : name,
-                   'err_msg' : err_msg})
+    return render(request, "admin/new_edit_client.html",
+                  {'menus'        : get_admin_menus(request),
+                   'current_url'  : "/admin/clients/edit/XXX",
+                   'page_heading' : "Ripple Annotation Database Admin",
+                   'heading'      : "Edit Client System",
+                   'back'         : backHandler.encode_url(back_url),
+                   'name'         : name,
+                   'err_msg'      : err_msg})
 
 #############################################################################
 
@@ -172,23 +187,29 @@ def delete(request, client_id):
     if not auth_controller.is_logged_in(request):
         return auth_controller.redirect_to_login()
 
+    back_url = backHandler.get_back_param(request, default="/admin")
+
     try:
         client = Client.objects.get(id=client_id)
     except Client.DoesNotExist:
-        return HttpResponseRedirect("/admin/clients") # Should never happen.
+        return HttpResponseRedirect(back_url) # Should never happen.
 
     if request.method == "POST":
-        if request.POST['submit'] == "Delete":
+        if request.POST['submit'] == "Submit":
             # The user confirmed -> delete the client.
             client.delete()
 
-        return HttpResponseRedirect("/admin/clients")
+        return HttpResponseRedirect(back_url)
 
     # Display the confirmation dialog.
 
-    return render(request, "admin/confirm.html",
-                  {'heading'  : "Delete Client System",
-                   'message'  : 'Are you sure you want to delete the "' +
-                                client.name + '" client?',
-                   'btn_name' : "Delete"})
+    encoded_url = backHandler.encode_url(back_url)
+    return render(request, "admin/new_confirm.html",
+                  {'menus'         : get_admin_menus(request),
+                   'current_url'   : "/admin/clients/delete/XXX",
+                   'heading'       : "Delete Client System",
+                   'message'       : "Are you sure you want to delete the " +
+                                     '"' + client.name + '" client?',
+                   'hidden_vars'   : dict(back=encoded_url),
+                   'submit_label'  : "Delete"})
 

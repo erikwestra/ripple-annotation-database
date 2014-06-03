@@ -1,0 +1,248 @@
+{% extends "shared/base.html" %}
+
+{% block head %}
+  <style type="text/css">
+    code {
+      background: none;
+      color: black;
+      padding: 0;
+      font-size: 100%;
+    }
+
+    .indent {
+      margin-left: 20px;
+    }
+
+    div.gap {
+      height: 10px;
+    }
+
+    p.center {
+      text-align: center;
+    }
+
+    p.red {
+      color: red;
+    }
+  </style>
+{% endblock %}
+
+{% block body %}
+  <form method="POST">
+    {% csrf_token %}
+    <h3 class="blue">
+      Add Annotations
+    </h3>
+
+    <div class="indent">
+
+      <div class="row">
+        <div class="col-xs-3">
+          <input type="text" class="form-control" maxlength="255"
+                 name="account-0" value="{{ data.0.account }}"
+                 placeholder="Account">
+        </div>
+        <div class="col-xs-3">
+          <input type="text" class="form-control" maxlength="255"
+                 name="key-0" value="{{ data.0.key }}"
+                 placeholder="Annotation">
+        </div>
+        <div class="col-xs-3">
+          <input type="text" class="form-control" maxlength="255"
+                 name="value-0" value="{{ data.0.value }}"
+                 placeholder="Value">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-xs-3">
+          <input type="text" class="form-control" maxlength="255"
+                 name="account-1" value="{{ data.1.account }}"
+                 placeholder="Account">
+        </div>
+        <div class="col-xs-3">
+          <input type="text" class="form-control" maxlength="255"
+                 name="key-1" value="{{ data.1.key }}"
+                 placeholder="Annotation">
+        </div>
+        <div class="col-xs-3">
+          <input type="text" class="form-control" maxlength="255"
+                 name="value-1" value="{{ data.1.value }}"
+                 placeholder="Value">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-xs-3">
+          <input type="text" class="form-control" maxlength="255"
+                 name="account-2" value="{{ data.0.account }}"
+                 placeholder="Account">
+        </div>
+        <div class="col-xs-3">
+          <input type="text" class="form-control" maxlength="255"
+                 name="key-2" value="{{ data.2.key }}"
+                 placeholder="Annotation">
+        </div>
+        <div class="col-xs-3">
+          <input type="text" class="form-control" maxlength="255"
+                 name="value-2" value="{{ data.2.value }}"
+                 placeholder="Value">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-xs-3">
+          <input type="text" class="form-control" maxlength="255"
+                 name="account-3" value="{{ data.3.account }}"
+                 placeholder="Account">
+        </div>
+        <div class="col-xs-3">
+          <input type="text" class="form-control" maxlength="255"
+                 name="key-3" value="{{ data.3.key }}"
+                 placeholder="Annotation">
+        </div>
+        <div class="col-xs-3">
+          <input type="text" class="form-control" maxlength="255"
+                 name="value-3" value="{{ data.3.value }}"
+                 placeholder="Value">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-xs-3">
+          <input type="text" class="form-control" maxlength="255"
+                 name="account-4" value="{{ data.4.account }}"
+                 placeholder="Account">
+        </div>
+        <div class="col-xs-3">
+          <input type="text" class="form-control" maxlength="255"
+                 name="key-4" value="{{ data.4.key }}"
+                 placeholder="Annotation">
+        </div>
+        <div class="col-xs-3">
+          <input type="text" class="form-control" maxlength="255"
+                 name="value-4" value="{{ data.4.value }}"
+                 placeholder="Value">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-xs-3">
+          <input type="text" class="form-control" maxlength="255"
+                 name="account-5" value="{{ data.5.account }}"
+                 placeholder="Account">
+        </div>
+        <div class="col-xs-3">
+          <input type="text" class="form-control" maxlength="255"
+                 name="key-5" value="{{ data.5.key }}"
+                 placeholder="Annotation">
+        </div>
+        <div class="col-xs-3">
+          <input type="text" class="form-control" maxlength="255"
+                 name="value-5" value="{{ data.5.value }}"
+                 placeholder="Value">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-xs-3">
+          <input type="text" class="form-control" maxlength="255"
+                 name="account-6" value="{{ data.6.account }}"
+                 placeholder="Account">
+        </div>
+        <div class="col-xs-3">
+          <input type="text" class="form-control" maxlength="255"
+                 name="key-6" value="{{ data.6.key }}"
+                 placeholder="Annotation">
+        </div>
+        <div class="col-xs-3">
+          <input type="text" class="form-control" maxlength="255"
+                 name="value-6" value="{{ data.6.value }}"
+                 placeholder="Value">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-xs-3">
+          <input type="text" class="form-control" maxlength="255"
+                 name="account-7" value="{{ data.7.account }}"
+                 placeholder="Account">
+        </div>
+        <div class="col-xs-3">
+          <input type="text" class="form-control" maxlength="255"
+                 name="key-7" value="{{ data.7.key }}"
+                 placeholder="Annotation">
+        </div>
+        <div class="col-xs-3">
+          <input type="text" class="form-control" maxlength="255"
+                 name="value-7" value="{{ data.7.value }}"
+                 placeholder="Value">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-xs-3">
+          <input type="text" class="form-control" maxlength="255"
+                 name="account-8" value="{{ data.8.account }}"
+                 placeholder="Account">
+        </div>
+        <div class="col-xs-3">
+          <input type="text" class="form-control" maxlength="255"
+                 name="key-8" value="{{ data.8.key }}"
+                 placeholder="Annotation">
+        </div>
+        <div class="col-xs-3">
+          <input type="text" class="form-control" maxlength="255"
+                 name="value-8" value="{{ data.8.value }}"
+                 placeholder="Value">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-xs-3">
+          <input type="text" class="form-control" maxlength="255"
+                 name="account-9" value="{{ data.9.account }}"
+                 placeholder="Account">
+        </div>
+        <div class="col-xs-3">
+          <input type="text" class="form-control" maxlength="255"
+                 name="key-9" value="{{ data.9.key }}"
+                 placeholder="Annotation">
+        </div>
+        <div class="col-xs-3">
+          <input type="text" class="form-control" maxlength="255"
+                 name="value-9" value="{{ data.9.value }}"
+                 placeholder="Value">
+        </div>
+      </div>
+
+      <div class="gap"></div>
+
+  {% if err_msg %}
+          <p class="text-left red">
+            {{ err_msg }}
+          </p>
+  {% endif %}
+
+      <div class="gap"></div>
+
+      <div class="col-xs-9">
+        <div class="btn-group btn-group-justified">
+          <div class="btn-group">
+            <button class="btn btn-lg btn-primary active" type="submit"
+                    name="submit" value="Add">
+              Add
+            </button>
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-lg btn-warning" type="submit"
+                    name="submit" value="Cancel">
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+{% endblock %}
+

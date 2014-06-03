@@ -9,10 +9,12 @@ import xlrd
 
 from django.http           import HttpResponse, HttpResponseRedirect
 from django.shortcuts      import render
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 from annotationDatabase.authentication import auth_controller
 
 from annotationDatabase.shared.models import *
+from annotationDatabase.shared.lib    import backHandler
 
 from annotationDatabase.api import functions
 
@@ -23,7 +25,7 @@ from annotationDatabase.admin.menus import get_admin_menus
 def add(request):
     """ Respond to the "/admin/annotations/add" URL.
 
-        We let the user manually add an annotation to the system.
+        We let the user manually add a batch of annotations to the system.
     """
     if not auth_controller.is_logged_in(request):
         return auth_controller.redirect_to_login()
@@ -88,9 +90,12 @@ def add(request):
         elif request.POST['submit'] == "Cancel":
             return HttpResponseRedirect("/admin")
 
-    return render(request, "admin/add_annotations.html",
-                  {'data'    : data,
-                   'err_msg' : err_msg})
+    return render(request, "admin/new_add_batch.html",
+                  {'menus'        : get_admin_menus(request),
+                   'current_url'  : "/admin/annotations/add",
+                   'page_heading' : "Ripple Annotation Database Admin",
+                   'data'         : data,
+                   'err_msg'      : err_msg})
 
 #############################################################################
 
@@ -103,11 +108,16 @@ def upload(request):
         return auth_controller.redirect_to_login()
 
     if request.method == "GET":
+
         # We're displaying this page for the first time -> prepare our CGI
         # parameters.
+
         err_msg = None
-    elif request.method == "POST":
+
+    elif request.method == "POST" and request.POST['submit'] == "Upload":
+
         # The user is submitting the form.  Try extracting the uploaded file.
+
         err_msg = None # initially.
         file = request.FILES.get("file")
         if file == None:
@@ -170,9 +180,19 @@ def upload(request):
                 err_msg = response['error']
 
         if err_msg == None:
-            return HttpResponseRedirect("/admin")
+            return HttpResponseRedirect("/admin") # View uploaded batch???
 
-    return render(request, "admin/upload_batch.html", {'err_msg' : err_msg})
+    elif request.method == "POST" and request.POST['submit'] == "Cancel":
+
+        # The user clicked on our "Cancel" button -> go back to the main page.
+
+        return HttpResponseRedirect("/admin")
+
+    return render(request, "admin/new_upload_batch.html",
+                  {'menus'        : get_admin_menus(request),
+                   'current_url'  : "/admin/annotations/upload",
+                   'page_heading' : "Ripple Annotation Database Admin",
+                   'err_msg'      : err_msg})
 
 #############################################################################
 
@@ -194,7 +214,7 @@ def select_batch(request):
 
     page = int(params.get("page", "1"))
 
-    response = functions.list_batches(params.get("page"), rpp=20)
+    response = functions.list_batches(params.get("page"), rpp=8)
     if not response['success']:
         print response # Fix error handling later.
         return HttpResponseRedirect("/admin")
@@ -209,10 +229,16 @@ def select_batch(request):
     if request.method == "POST" and request.POST['submit'] == "Done":
         return HttpResponseRedirect("/admin")
 
-    return render(request, "admin/select_batch.html",
-                  {'page'      : page,
-                   'num_pages' : num_pages,
-                   'batches'   : batches})
+    return render(request, "admin/new_batch_list.html",
+                  {'menus'        : get_admin_menus(request),
+                   'current_url'  : "/admin/annotations/view",
+                   'page_heading' : "Ripple Annotation Database Admin",
+                   'page'         : page,
+                   'num_pages'    : num_pages,
+                   'batches'      : batches,
+                   'back'         : backHandler.encode_current_url(request),
+                   'done_url'     : "/admin",
+                  })
 
 #############################################################################
 
@@ -225,34 +251,86 @@ def view_batch(request, batch_number):
     if not auth_controller.is_logged_in(request):
         return auth_controller.redirect_to_login()
 
+    if request.method == "GET":
+        params = request.GET
+    elif request.method == "POST":
+        params = request.POST
+    else:
+        return HttpResponse("Bad HTTP Method")
+
+    page = int(params.get("page", "1"))
+
+    back_url = backHandler.get_back_param(request, default="/admin")
+
     response = functions.get(batch_number)
 
     if not response['success']:
-        print response # Fix error handling later.
-        return HttpResponseRedirect("/admin")
+        return HttpResponseRedirect(back_url) # Should never happen.
 
-    annotations = response['annotations']
-    for annotation in annotations:
+    all_annotations = response['annotations']
+    for index,annotation in enumerate(all_annotations):
+        annotation['index'] = index
         if annotation['hidden']:
             timestamp = annotation['hidden_at']
             timestamp = datetime.datetime.utcfromtimestamp(timestamp)
             annotation['hidden_at'] = timestamp
 
-    if request.method == "POST":
-        for i,annotation in enumerate(annotations):
-            if request.POST.get("hide-%d" % i) == "Hide":
-                # Hide this annotation.
-                user_id = auth_controller.get_username(request)
-                functions.hide(user_id, batch_number,
-                               account=annotation['account'],
-                               annotation=annotation['key'])
-                # Reload the page to show the updated batch contents.
-                return HttpResponseRedirect("/admin/view_batch/%s" %
-                                            batch_number)
+    paginator = Paginator(all_annotations, 10)
 
-        if request.POST.get("submit") == "Done":
-            return HttpResponseRedirect("/admin")
+    try:
+        annotations = paginator.page(page)
+    except PageNotAnInteger:
+        annotations = paginator.page(1)
+    except EmptyPage:
+        annotations = []
 
-    return render(request, "admin/view_batch.html",
-                  {'annotations' : annotations})
+    return render(request, "admin/new_view_batch.html",
+                  {'menus'        : get_admin_menus(request),
+                   'current_url'  : "/admin/annotations/view/XXX",
+                   'page_heading' : "Ripple Annotation Database Admin",
+                   'page'         : page,
+                   'num_pages'    : paginator.num_pages,
+                   'batch_number' : batch_number,
+                   'annotations'  : annotations,
+                   'back'         : backHandler.encode_current_url(request),
+                   'done_url'     : back_url,
+                  })
+
+#############################################################################
+
+def hide(request, batch_number):
+    """ Respond to the "/admin/annotations/hide/{batch_number}" URL.
+
+        We hide an annotation within the given batch.
+    """
+    if not auth_controller.is_logged_in(request):
+        return auth_controller.redirect_to_login()
+
+    if request.method == "GET":
+        params = request.GET
+    elif request.method == "POST":
+        params = request.POST
+    else:
+        return HttpResponse("Bad HTTP Method")
+
+    back_url = backHandler.get_back_param(request, default="/admin")
+
+    if "index" not in params:
+        return HttpResponseRedirect(back_url)
+
+    index = int(params["index"])
+
+    response = functions.get(batch_number)
+
+    if not response['success']:
+        return HttpResponseRedirect(back_url) # Should never happen.
+
+    annotation_to_hide = response['annotations'][index]
+
+    user_id = auth_controller.get_username(request)
+    functions.hide(user_id, batch_number,
+                   account=annotation_to_hide['account'],
+                   annotation=annotation_to_hide['key'])
+
+    return HttpResponseRedirect(back_url)
 

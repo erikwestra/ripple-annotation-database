@@ -1,0 +1,122 @@
+{% extends "shared/base.html" %}
+
+{% block head %}
+  <style type="text/css">
+    .fillspace {
+      display: inline-block;
+      margin: 0;
+    }
+
+    .pager-text {
+      font-variant: italic;
+    }
+
+    div.gap {
+      height: 10px;
+    }
+  </style>
+{% endblock %}
+
+{% block body %}
+  <h4 class="blue">
+    Annotations in Batch {{ batch_number }}:
+  </h4>
+
+  <ul class="pager">
+  {% if page > 1 %}
+    <li class="previous">
+      <a href="?page={{ page|add:"-1" }}">&larr; Previous</a>
+    </li>
+  {% else %}
+    <li class="previous disabled"><a href="#">&larr; Previous</a></li>
+  {% endif %}
+
+    <li>
+      <h5 class="blue fillspace">
+        Viewing page {{ page }} of {{ num_pages }}
+      </h5>
+    </li>
+
+  {% if page < num_pages %}
+    <li class="next">
+      <a href="?page={{ page|add:"1" }}">Next &rarr;</a>
+    </li>
+  {% else %}
+    <li class="next disabled"><a href="#">Next &rarr;</a></li>
+  {% endif %}
+  </ul> 
+
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <td nowrap>
+          Account
+        </td>
+        <td nowrap>
+          Annotation
+        </td>
+        <td nowrap>
+          Value
+        </td>
+        <td nowrap>
+          Hidden?
+        </td>
+        <td nowrap>
+          Hidden At
+        </td>
+        <td nowrap>
+          Hidden By
+        </td>
+        <td nowrap>
+          &nbsp;
+        </td>
+      </tr>
+    </thead>
+    <tbody>
+  {% for annotation in annotations %}
+    <tr>
+      <td nowrap>
+        {{ annotation.account }}
+      </td>
+      <td nowrap>
+        {{ annotation.key }}
+      </td>
+      <td nowrap>
+        {{ annotation.value }}
+      </td>
+      <td nowrap>
+    {% if annotation.hidden %}
+        Yes
+    {% else %}
+        No
+    {% endif %}
+      </td>
+      <td nowrap>
+    {% if annotation.hidden %}
+        {{ annotation.hidden_at|date }} {{ annotation.hidden_at|time }}
+    {% endif %}
+      </td>
+      <td nowrap>
+    {% if annotation.hidden %}
+        {{ annotation.hidden_by }}
+    {% endif %}
+      </td>
+
+      <td nowrap>
+    {% if not annotation.hidden %}
+        <a href="/admin/annotations/hide/{{ batch_number }}?index={{ annotation.index }}&back={{ back }}"
+           class="btn btn-info" role="button">
+          Hide
+        </a>
+    {% endif %}
+      </td>
+    </tr>
+  {% endfor %}
+    </tbody>
+  </table>
+    <div class="pull-right">
+      <a href="{{ done_url }}" class="btn btn-primary active" role="button">
+        Done
+      </a>
+    </div>
+{% endblock %}
