@@ -22,13 +22,13 @@
         background-color: #eee;
       }
 
-      .form-login {
-        max-width: 330px;
+      .login-panel {
+        max-width: 400px;
         padding: 15px;
         margin: 0 auto;
       }
 
-      .form-login * {
+      .login-panel form * {
         margin: 10px;
       }
 
@@ -63,8 +63,8 @@
     <![endif]-->
   </head>
   <body>
-    <div class="container">
-      <form method="post" class="form-login" role="form">
+    <div class="panel login-panel">
+      <form method="post" role="form">
         {% csrf_token %}
         <div class="form-group">
 {% if heading_icon %}
@@ -74,29 +74,39 @@
           <h2 class="form-login-heading">{{ heading }}</h2>
 {% endif %}
         </div>
-        <input type="text" name="username" class="form-control"
-               placeholder="Username" value="{{ username }}" autofocus/>
-        <input type="password" name="password" class="form-control"
-               placeholder="Password"/>
+
+        <div class="form-group">
+          <input type="text" name="username" class="form-control"
+          placeholder="Username" value="{{ username }}" autofocus/>
+        </div>
+
+        <div class="form-group">
+          <input type="password" name="password" class="form-control"
+          placeholder="Password"/>
+        </div>
+
 {% if err_msg %}
-        <span class="navbar-text error">
-          {{ err_msg }}
-        </span>
-      </td>
-    </tr>
+        <div class="form-group">
+          <p class="error">
+            {{ err_msg }}
+          </p>
+        </div>
 {% endif %}
-        <div class="btn-group btn-group-justified">
-          <div class="btn-group">
-            <button class="btn btn-lg btn-primary" type="submit"
-                    name="submit" value="Submit">
-              Log in
-            </button>
-          </div>
-          <div class="btn-group">
-            <button class="btn btn-lg btn-warning" type="submit"
-                    name="cancel" value="Cancel">
-              Cancel
-            </button>
+    
+        <div class="form-group">
+          <div class="btn-group btn-group-justified">
+            <div class="btn-group">
+              <button class="btn btn-lg btn-primary" type="submit"
+                      name="submit" value="Submit">
+                Log in
+              </button>
+            </div>
+            <div class="btn-group">
+              <button class="btn btn-lg btn-warning" type="submit"
+                      name="cancel" value="Cancel">
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       </form>
