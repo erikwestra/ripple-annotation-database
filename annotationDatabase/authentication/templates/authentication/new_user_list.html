@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>Add/Edit {{ user_label|capfirst }}s</title>
+
+    <link rel="stylesheet"
+          href="{{ STATIC_URL }}css/bootstrap.min.css">
+
+{% if shortcut_icon %}
+    <link rel="shortcut icon" href="{{ shortcut_icon }}">
+{% endif %}
+
+    <style type="text/css">
+      body {
+        padding-top: 40px;
+        padding-bottom: 40px;
+        background-color: #eee;
+      }
+
+      .dialog {
+        max-width: 330px;
+        padding: 15px;
+        margin: 0 auto;
+      }
+
+      .form-login * {
+        margin: 10px;
+      }
+
+      .heading-image {
+        float: none;
+        display: inline-block;
+        vertical-align: middle;
+        margin-right: -4px;
+      }
+
+      .heading-text {
+        float: none;
+        display: inline-block;
+        vertical-align:middle;
+        font-size: 30px;
+        font-weight: 500;
+        line-height: 1.1;
+        white-space: nowrap;
+      }
+
+      .error {
+        font-weight: bold;
+        color: red;
+      }
+    </style>
+
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js">
+      </script>
+      <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js">
+      </script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="container well">
+      <div class="heading">
+{% if heading_icon %}
+        <img class="heading-image" src="{{ heading_icon }}"/><!--
+     --><h2 class="heading-text">Add/Edit {{ user_label|capfirst }}s</h2>
+{% else %}
+        <h2 class="heading-text">Add/Edit {{ user_label|capfirst }}s</h2>
+{% endif %}
+      </div>
+      <table class="table table-condensed table-striped">
+        <thead>
+          <tr>
+            <td>
+              Name
+            </td>
+            <td>
+              Type
+            </td>
+            <td>
+              &nbsp;
+            </td>
+            <td>
+              &nbsp;
+            </td>
+          </tr>
+        </thead>
+        <tbody>
+{% for user in users %}
+          <tr>
+            <td>
+              {{ user.username }}
+            </td>
+            <td>
+              {{ user.type }}
+            </td>
+            <td>
+              <a href="{{ edit_url }}/{{ user.id }}"
+                 class="btn btn-sm btn-info">Edit</a>
+            </td>
+            <td>
+  {% if user.username != cur_username %}
+              <a href="{{ delete_url }}/{{ user.id }}"
+                 class="btn btn-sm btn-warning">Delete</a>
+  {% else %}
+              <a href="#"
+                 class="btn btn-sm btn-warning disabled">Delete</a>
+  {% endif %}
+            </td>
+          </tr>
+{% endfor %}
+        </tbody>
+      </table>
+
+      <div class="btn-group btn-group-justified">
+        <div class="btn-group">
+          <a href="{{ add_url }}"
+            class="btn btn-lg btn-default" type="button">
+            Add {{ user_label|capfirst }}
+          </a>
+    <title>Add/Edit {{ user_label|capfirst }}s</title>
+        </div>
+        <div class="btn-group">
+          <a href="{{ finished_url }}"
+             class="btn btn-lg btn-default" type="button">Finished</a>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+

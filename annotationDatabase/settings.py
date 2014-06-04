@@ -187,10 +187,11 @@ LOGGING = {
 
 # Authentication settings:
 
-SESSION_ENGINE                = "django.contrib.sessions.backends.signed_cookies"
-AUTHENTICATION_MAIN_URL       = "/admin"
-AUTHENTICATION_LOGGED_OUT_URL = "/public"
-AUTHENTICATION_SHORTCUT_ICON  = STATIC_URL + "images/icon_small.png"
-AUTHENTICATION_HEADING_ICON   = STATIC_URL + "images/icon_large.png"
-AUTHENTICATION_LOGIN_HEADING  = "Admin Login"
+SESSION_ENGINE                 = "django.contrib.sessions.backends.signed_cookies"
+AUTHENTICATION_MAIN_URL        = "/admin"
+AUTHENTICATION_LOGGED_OUT_URL  = "/public"
+AUTHENTICATION_SHORTCUT_ICON   = STATIC_URL + "images/icon_small.png"
+AUTHENTICATION_HEADING_ICON    = STATIC_URL + "images/icon_large.png"
+AUTHENTICATION_USER_LABEL      = "administrator"
+AUTHENTICATION_LOGIN_HEADING   = "Admin Login"
 

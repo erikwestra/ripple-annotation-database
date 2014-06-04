@@ -26,11 +26,11 @@ def password(request):
 
     elif request.method == "POST":
 
-        if request.POST.get("cancel") != None:
+        if request.POST.get("submit") == "Cancel":
             # The user cancelled -> return back to the main page.
             return HttpResponseRedirect(app_settings.MAIN_URL)
 
-        if request.POST.get("submit") != None:
+        if request.POST.get("submit") == "Submit":
             # The user submitted the form -> check the entered values.
 
             err_msg = None # initially.
@@ -68,6 +68,8 @@ def password(request):
 
     # If we get here, display the "change password" page.
 
-    return render(request, "authentication/password.html",
-                  {'err_msg' : err_msg})
+    return render(request, "authentication/new_change_password.html",
+                  {'shortcut_icon' : app_settings.SHORTCUT_ICON,
+                   'heading_icon'  : app_settings.HEADING_ICON,
+                   'err_msg'       : err_msg})
 

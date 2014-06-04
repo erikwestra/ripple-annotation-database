@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>{{ title }}</title>
+
+    <link rel="stylesheet"
+          href="{{ STATIC_URL }}css/bootstrap.min.css">
+
+{% if shortcut_icon %}
+    <link rel="shortcut icon" href="{{ shortcut_icon }}">
+{% endif %}
+
+    <style type="text/css">
+      body {
+        padding-top: 40px;
+        padding-bottom: 40px;
+        background-color: #eee;
+      }
+
+      .confirm-panel {
+        max-width: 400px;
+        padding: 15px;
+        margin: 0 auto;
+      }
+
+      .confirm-form-image {
+        float: none;
+        display: inline-block;
+        vertical-align: middle;
+        margin-right: -4px;
+      }
+
+      .confirm-form-heading {
+        float: none;
+        display: inline-block;
+        vertical-align:middle;
+        font-size: 30px;
+        font-weight: 500;
+        line-height: 1.1;
+        white-space: nowrap;
+      }
+    </style>
+
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js">
+      </script>
+      <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js">
+      </script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="panel confirm-panel">
+      <form method="post" class="confirm-form" role="form">
+        {% csrf_token %}
+
+        <div class="form-group">
+{% if heading_icon %}
+          <img class="confirm-form-image" src="{{ heading_icon }}"/><!--
+       --><h2 class="confirm-form-heading">{{ heading }}</h2>
+{% else %}
+          <h2 class="confirm-form-heading">{{ heading }}</h2>
+{% endif %}
+        </div>
+        <h4 class="blue">{{ heading }}</h4>
+        <p>
+          {{ message }}
+        </p>
+
+        <div class="gap"></div>
+
+{% if hidden_vars %}
+  {% for key,value in hidden_vars.items %}
+        <input type="hidden" name="{{ key }}" value="{{ value }}"/>
+  {% endfor %}
+{% endif %}
+
+        <div class="btn-group btn-group-justified">
+          <div class="btn-group">
+            <button class="btn btn-lg btn-danger" type="submit"
+                    name="submit" value="Submit">
+              {{ submit_label }}
+            </button>
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-lg btn-warning" type="submit"
+                    name="submit" value="Cancel">
+              Cancel
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </body>
+</html>
+

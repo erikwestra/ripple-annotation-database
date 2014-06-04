@@ -18,6 +18,11 @@ USER_TYPES = getattr(settings, "AUTHENTICATION_USER_TYPES",
 ADMIN_USER_TYPE = getattr(settings, "AUTHENTICATION_ADMIN_USER_TYPE",
                           "administrator")
 
+# The label to use for a "user" of the system:
+
+USER_LABEL = getattr(settings, "AUTHENTICATION_USER_LABEL",
+                     "user")
+
 # The default type for new users:
 
 DEFAULT_USER_TYPE = getattr(settings, "AUTHENTICATION_DEFAULT_USER_TYPE",
