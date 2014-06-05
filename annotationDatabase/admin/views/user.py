@@ -177,7 +177,7 @@ def delete(request, user_id):
     if request.method == "POST":
         if request.POST['submit'] == "Submit":
             # The user clicked on our "Submit" button -> delete the user.
-            for account in Accounts.objects.filter(owner=user):
+            for account in Account.objects.filter(owner=user):
                 account.owner = None
                 account.save()
             user.delete()
@@ -240,7 +240,7 @@ def remove_account(request, user_id, account):
     return render(request, "admin/new_confirm.html",
                   {'menus'         : get_admin_menus(request),
                    'current_url'   : "/admin/user/%s/delete" % user_id,
-                   'heading'       : "Delete User",
+                   'heading'       : "Remove Account",
                    'message'       : "Are you sure you want to remove the " +
                                      '"' + account.address + '"' +
                                      "account for user " +
