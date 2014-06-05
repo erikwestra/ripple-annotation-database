@@ -73,7 +73,7 @@ def search(request):
 #############################################################################
 
 def search_results(request):
-    """ Respond to the "/admin/search_results" URL.
+    """ Respond to the "/admin/search/results" URL.
 
         We display the matching accounts for a given set of search criteria.
     """
@@ -96,7 +96,7 @@ def search_results(request):
         # The user pressed the "Search" button -> reissue the search request.
         query = query.replace("&", "%26")
         query = query.replace("=", "%3D")
-        return HttpResponseRedirect("/admin/search_results" +
+        return HttpResponseRedirect("/admin/search/results" +
                                     "?query=" + query)
 
     if download == "1":
