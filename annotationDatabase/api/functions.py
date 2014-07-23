@@ -118,14 +118,15 @@ def add(batch):
             account.save()
 
         try:
-            annotationKey = AnnotationKey.objects.get(key=entry['key'])
+            annotationKey = AnnotationKey.objects.get(key__iexact=entry['key'])
         except AnnotationKey.DoesNotExist:
             annotationKey = AnnotationKey()
             annotationKey.key = entry['key']
             annotationKey.save()
 
         try:
-            annotationValue = AnnotationValue.objects.get(value=entry['value'])
+            annotationValue = AnnotationValue.objects.get(
+                                                value__iexact=entry['value'])
         except AnnotationValue.DoesNotExist:
             annotationValue = AnnotationValue()
             annotationValue.value = entry['value']
@@ -202,7 +203,7 @@ def hide(user_id, batch_num, account=None, annotation=None):
 
     if annotation != None:
         try:
-            annotationKey = AnnotationKey.objects.get(key=annotation)
+            annotationKey = AnnotationKey.objects.get(key__iexact=annotation)
         except AnnotationKey.DoesNotExist:
             return {'success' : False,
                     'error'   : "No such annotation"}
@@ -210,13 +211,13 @@ def hide(user_id, batch_num, account=None, annotation=None):
     if account != None and annotation != None:
         annotations_to_hide = Annotation.objects.filter(batch=annotationBatch,
                                                         account=account,
-                                                        key=annotationKey)
+                                                        key__iexact=annotationKey)
     elif account != None and annotation == None:
         annotations_to_hide = Annotation.objects.filter(batch=annotationBatch,
                                                         account=account)
     elif account == None and annotation != None:
         annotations_to_hide = Annotation.objects.filter(batch=annotationBatch,
-                                                        key=annotationKey)
+                                                        key__iexact=annotationKey)
     elif account == None and annotation == None:
         annotations_to_hide = Annotation.objects.filter(batch=annotationBatch)
 
@@ -236,7 +237,8 @@ def hide(user_id, batch_num, account=None, annotation=None):
     for account,key in annotations_to_recalculate:
         cur_value     = None # initially.
         cur_timestamp = None # ditto.
-        for annotation in Annotation.objects.filter(account=account, key=key):
+        for annotation in Annotation.objects.filter(account=account,
+                                                    key=key):
             if annotation.hidden: continue
 
             timestamp = annotation.batch.timestamp
@@ -630,7 +632,7 @@ def account_history(account):
     for annotation in query:
         found = False
         for entry in annotations:
-            if entry['key'] == annotation.key.key:
+            if entry['key'].lower() == annotation.key.key.lower():
                 found = True
                 break
 
@@ -756,10 +758,10 @@ def search(query, page=1, rpp=1000, totals_only=False):
                 'error'   : "Syntax error in search query"}
 
     def expressionConverter(variable, comparison, value):
-        q1 = Q(key__key=variable)
+        q1 = Q(key__key__iexact=variable)
 
         if comparison == "=":
-            q2 = Q(value__value=value)
+            q2 = Q(value__value__iexact=value)
         elif comparison == "<":
             q2 = Q(value__value__lt=value)
         elif comparison == ">":

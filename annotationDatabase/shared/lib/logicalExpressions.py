@@ -219,7 +219,7 @@ class SimpleExpression(LogicalExpression):
             # with the variable name, and compares it against the supplied
             # value directly.
             if self._comparison == "=":
-                args   = {self._variable : self._value}
+                args   = {self._variable + "__iexact" : self._value}
                 negate = False
             elif self._comparison == "<":
                 args   = {self._variable + "__lt" : self._value}

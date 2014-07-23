@@ -189,10 +189,16 @@ The Ripple Annotation API currently supports the following endpoints:
 > > > > > `key` _(required)_
 > > > > > 
 > > > > > > A string that uniquely identifies this annotation for this account.
+> > > > > > 
+> > > > > > Note that the annotation key is always case-insensitive -- that is,
+> > > > > > "NAME", "Name" and "nAmE" are all equivalent.
 > > > > > 
 > > > > > `value` _(required)_
 > > > > > 
 > > > > > > The value of this annotation for this account, as a string.
+> > > > > > 
+> > > > > > Note that the annotation value is always case-insensitive -- that
+> > > > > > is, "John Smith", "JOHN SMITH" and "jOhN sMiTh" are all equivalent.
 > > 
 > > Upon completion, the server will return an HTTP status code of `200` (OK),
 > > and the body of the response will have a content-type value of

@@ -58,7 +58,7 @@ def main(request):
             # and password.
 
             try:
-                user = User.objects.get(username=signin_username)
+                user = User.objects.get(username__iexact=signin_username)
             except User.DoesNotExist:
                 user = None
 
@@ -115,12 +115,12 @@ def signup(request):
 
         if err_msg == None:
             try:
-                existing_user = User.objects.get(username=username)
+                existing_user = User.objects.get(username__iexact=username)
             except User.DoesNotExist:
                 existing_user = None
 
             if existing_user != None:
-                err_msg = "Sorry, that username is already in user."
+                err_msg = "Sorry, that username is already in use."
 
         if err_msg == None:
             if password1 in [None, ""]:

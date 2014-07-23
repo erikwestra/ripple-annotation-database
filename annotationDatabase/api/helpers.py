@@ -70,14 +70,14 @@ def set_current_annotation(account, key, value):
         annotation_account.save()
 
     try:
-        annotation_key = AnnotationKey.objects.get(key=key)
+        annotation_key = AnnotationKey.objects.get(key__iexact=key)
     except AnnotationKey.DoesNotExist:
         annotation_key = AnnotationKey()
         annotation_key.key = key
         annotation_key.save()
 
     try:
-        annotation_value = AnnotationValue.objects.get(value=value)
+        annotation_value = AnnotationValue.objects.get(value__iexact=value)
     except AnnotationValue.DoesNotExist:
         annotation_value = AnnotationValue()
         annotation_value.value = value
