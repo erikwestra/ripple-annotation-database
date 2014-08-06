@@ -133,6 +133,12 @@ def upload(request):
                 type       = _get_text(sheet.cell(row, 2))
                 default    = _get_text(sheet.cell(row, 3))
 
+                if (annotation == "" and label == ""
+                                     and type == ""
+                                     and default == ""):
+                    # Skip blank rows.
+                    continue
+
                 if annotation == "":
                     err_msg = "Missing annotation key in row %d" % (row+1)
                     break
