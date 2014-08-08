@@ -130,13 +130,13 @@ def upload(request):
                 err_msg = "This doesn't appear to be an Excel spreadsheet."
 
         if err_msg == None:
-            if len(workbook.sheets()) != 1:
-                err_msg = "There must be exactly one sheet in the spreadsheet."
+            if len(workbook.sheets()) < 1:
+                err_msg = "There must be at least one sheet in the spreadsheet."
 
         if err_msg == None:
             sheet = workbook.sheets()[0]
             if sheet.ncols == 0:
-                err_msg = "That spreadsheet is empty."
+                err_msg = "That sheet is empty."
 
         def _get_text(cell):
             """ Extract the text from the given cell.
