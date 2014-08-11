@@ -77,10 +77,6 @@ INSTALLED_APPS = (
 
     "south",
 
-    # Add the "BoxUI" user-interface toolkit.
-
-    "annotationDatabase.boxUI",
-
     # Enable the user-authentication app.
 
     "annotationDatabase.authentication",

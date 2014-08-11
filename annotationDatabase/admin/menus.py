@@ -15,11 +15,13 @@ def get_admin_menus(request):
         the menus will be created automatically.
     """
     annotation_menu_items = [
-        ("Add Annotations",          "/admin/annotations/add"),
-        ("Upload Annotations",       "/admin/annotations/upload"),
-        ("View Annnotation Batches", "/admin/annotations/view"),
-        ("------------------------", None),
-        ("Search",                   "/admin/search"),
+        ("Add Annotations",             "/admin/annotations/add"),
+        ("Upload Annotations",          "/admin/annotations/upload"),
+        ("------------------------",    None),
+        ("View Annotations by Account", "/admin/annotations/account"),
+        ("View Annnotation by Batch",    "/admin/annotations/batch"),
+        ("------------------------",    None),
+        ("Search",                      "/admin/search"),
     ]
 
     template_menu_items = [

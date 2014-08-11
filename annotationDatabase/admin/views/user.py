@@ -100,7 +100,7 @@ def accounts(request, user_id):
     except EmptyPage:
         accounts = []
 
-    return render(request, "admin/new_account_list.html",
+    return render(request, "admin/new_user_accounts.html",
                   {'menus'        : get_admin_menus(request),
                    'current_url'  : "/admin/user/XXX/accounts",
                    'page_heading' : "Ripple Annotation Database Admin",

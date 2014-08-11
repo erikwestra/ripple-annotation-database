@@ -19,7 +19,7 @@
 
 {% block body %}
   <h4 class="blue">
-    Accounts with Annotations:
+    Accounts for {{ user.username }}
   </h4>
 
   <ul class="pager">
@@ -58,22 +58,30 @@
         <td nowrap>
           &nbsp;
         </td>
+        <td nowrap>
+          &nbsp;
+        </td>
       </tr>
     </thead>
     <tbody>
   {% for account in accounts %}
     <tr>
       <td nowrap>
-        {{ account }}
+        {{ account.address }}
       </td>
       <td nowrap>
-        <a href="/admin/accounts/{{ account }}/current?back={{ back }}">
+        <a href="/admin/accounts/{{ account.address }}/current?back={{ back }}">
           View Annotations
         </a>
       </td>
       <td nowrap>
-        <a href="/admin/accounts/{{ account }}/history?back={{ back }}">
+        <a href="/admin/accounts/{{ account.address }}/history?back={{ back }}">
           View History
+        </a>
+      </td>
+      <td nowrap>
+        <a href="/admin/users/{{ user.id }}/remove/{{ account.address }}?back={{ back }}">
+          Remove
         </a>
       </td>
     </tr>
@@ -82,8 +90,8 @@
   </table>
 
   <div class="pull-right">
-     <a href="{{ done_url }}" class="btn btn-primary active" role="button">
-       Done
-     </a>
-   </div>
+    <a href="{{ done_url }}" class="btn btn-primary active" role="button">
+      Done
+    </a>
+  </div>
 {% endblock %}

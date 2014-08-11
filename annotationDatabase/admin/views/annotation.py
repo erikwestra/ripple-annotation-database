@@ -196,8 +196,50 @@ def upload(request):
 
 #############################################################################
 
-def select_batch(request):
+def select_account(request):
     """ Respond to the "/admin/annotations/view" URL.
+
+        We display a list of Ripple accounts, and let the user select the
+        account to view the annotations for.
+    """
+    if not auth_controller.is_logged_in(request):
+        return auth_controller.redirect_to_login()
+
+    if request.method == "GET":
+        params = request.GET
+    elif request.method == "POST":
+        params = request.POST
+    else:
+        return HttpResponse("Bad HTTP Method")
+
+    page = int(params.get("page", "1"))
+
+    response = functions.list_accounts(page, rpp=15)
+    if not response['success']:
+        print response # Fix error handling later.
+        return HttpResponseRedirect("/admin")
+
+    accounts  = response['accounts']
+    num_pages = response['num_pages']
+
+    if request.method == "POST" and request.POST['submit'] == "Done":
+        return HttpResponseRedirect("/admin")
+
+    return render(request, "admin/new_account_list.html",
+                  {'menus'        : get_admin_menus(request),
+                   'current_url'  : "/admin/annotations/account",
+                   'page_heading' : "Ripple Annotation Database Admin",
+                   'page'         : page,
+                   'num_pages'    : num_pages,
+                   'accounts'     : accounts,
+                   'back'         : backHandler.encode_current_url(request),
+                   'done_url'     : "/admin",
+                  })
+
+#############################################################################
+
+def select_batch(request):
+    """ Respond to the "/admin/annotations/batch" URL.
 
         We display a list of annotation batches, and let the user select the
         batch to view.
@@ -214,7 +256,7 @@ def select_batch(request):
 
     page = int(params.get("page", "1"))
 
-    response = functions.list_batches(params.get("page"), rpp=8)
+    response = functions.list_batches(page, rpp=8)
     if not response['success']:
         print response # Fix error handling later.
         return HttpResponseRedirect("/admin")
@@ -231,7 +273,7 @@ def select_batch(request):
 
     return render(request, "admin/new_batch_list.html",
                   {'menus'        : get_admin_menus(request),
-                   'current_url'  : "/admin/annotations/view",
+                   'current_url'  : "/admin/annotations/batch",
                    'page_heading' : "Ripple Annotation Database Admin",
                    'page'         : page,
                    'num_pages'    : num_pages,
@@ -243,7 +285,7 @@ def select_batch(request):
 #############################################################################
 
 def view_batch(request, batch_number):
-    """ Respond to the "/admin/annotations/view/{batch_number}" URL.
+    """ Respond to the "/admin/annotations/batch/{batch_number}" URL.
 
         We display the contents of the given annotation batch, and let the user
         hide annotations within the batch.
@@ -286,7 +328,7 @@ def view_batch(request, batch_number):
 
     return render(request, "admin/new_view_batch.html",
                   {'menus'        : get_admin_menus(request),
-                   'current_url'  : "/admin/annotations/view/XXX",
+                   'current_url'  : "/admin/annotations/batch/XXX",
                    'page_heading' : "Ripple Annotation Database Admin",
                    'page'         : page,
                    'num_pages'    : paginator.num_pages,

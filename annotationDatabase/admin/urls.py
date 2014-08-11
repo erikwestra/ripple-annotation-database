@@ -21,8 +21,9 @@ urlpatterns = patterns('annotationDatabase.admin.views',
 
     url(r'^annotations/add$',                         "annotation.add"),
     url(r'^annotations/upload$',                      "annotation.upload"),
-    url(r'^annotations/view$',                        "annotation.select_batch"),
-    url(r'^annotations/view/(?P<batch_number>[^/]+)', "annotation.view_batch"),
+    url(r'^annotations/account$',                   "annotation.select_account"),
+    url(r'^annotations/batch$',                       "annotation.select_batch"),
+    url(r'^annotations/batch/(?P<batch_number>[^/]+)',"annotation.view_batch"),
     url(r'^annotations/hide/(?P<batch_number>[^/]+)', "annotation.hide"),
 
     url(r'^search$',                                  "search.search"),
