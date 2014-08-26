@@ -199,8 +199,8 @@ def upload(request):
 def select_account(request):
     """ Respond to the "/admin/annotations/view" URL.
 
-        We display a list of Ripple accounts, and let the user select the
-        account to view the annotations for.
+        We display a list of accounts, and let the user select the account to
+        view the annotations for.
     """
     if not auth_controller.is_logged_in(request):
         return auth_controller.redirect_to_login()

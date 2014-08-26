@@ -26,7 +26,7 @@
     {% csrf_token %}
 
     <input type="text" name="address" class="form-control"
-           placeholder="Ripple Address" value="{{ address }}" autofocus/>
+           placeholder="Account Address" value="{{ address }}" autofocus/>
 {% if err_msg %}
     <p class="error">
       {{ err_msg }}

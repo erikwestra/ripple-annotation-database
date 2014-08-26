@@ -164,9 +164,9 @@ def signup(request):
 def accounts(request):
     """ Respond to the "/public/accounts" URL.
 
-        We display the user's Ripple accounts, let them add/edit/remove
-        accounts, and access various options such as changing their password,
-        signing out, etc.
+        We display the user's accounts, let them add/edit/remove accounts, and
+        access various options such as changing their password, signing out,
+        etc.
     """
     session = get_session(request)
     if session == None:
@@ -208,8 +208,8 @@ def accounts(request):
 def add_account(request):
     """ Respond to the "/public/accounts/add" URL.
 
-        We let the user add a new Ripple account to the list of accounts owned
-        by this user.
+        We let the user add a new account to the list of accounts owned by this
+        user.
     """
     session = get_session(request)
     if session == None:
@@ -231,22 +231,14 @@ def add_account(request):
             # The user is cancelling -> return to the accounts page.
             return HttpResponseRedirect("/public/accounts")
 
-        # If we get here, the user is trying to add a Ripple account.  Check
-        # the entered data.
+        # If we get here, the user is trying to add an account.  Check the
+        # entered data.
 
         address = request.POST.get("address")
         err_msg = None # initially.
 
         if address in [None, ""]:
-            err_msg = "You must enter the desired Ripple address."
-
-        if err_msg == None:
-            if not address.startswith("r"):
-                err_msg = "Invalid Ripple address."
-
-        if err_msg == None:
-            if len(address) != 34:
-                err_msg = "Invalid Ripple address."
+            err_msg = "You must enter the desired account address."
 
         if err_msg == None:
             try:
@@ -255,7 +247,7 @@ def add_account(request):
                 existing_account = None
 
             if existing_account != None and existing_account.owner != None:
-                err_msg = ("That Ripple account belongs to someone else.  " +
+                err_msg = ("That account belongs to someone else.  " +
                            "If you think this is a mistake, please email " +
                            settings.PUBLIC_CONFLICT_EMAIL)
 

@@ -1,47 +1,51 @@
-Thoughts on the Ripple Annotation Database
-------------------------------------------
+Updating the Annotation Database to support public annotations
+--------------------------------------------------------------
 
- * Have a "public" app that implements the public side of the Annotation
-   Database.  This is where suitably authorised users can self-annotate their
-   accounts.
+Some annotations will be publically searchable, while others are private.
 
- * The "/" URL should redirect to "/public".  To access the admin site, the
-   user will have to enter the "/admin" URL, or click on the "admin" link from
-   the main "/public" page.
+The current API will only let people who are authorized do searches against
+annotations.
 
- * The main page should handle both new and existing users:
+I think we can change the "/search" API endpoint so that the "auth_token" is
+optional.  If no auth_token is supplied, then only public annotations can be
+searched against.
 
-        Welcome to the Ripple Annotation Database
+I'd also like to add a "public" search interface, where simple queries can be
+made against public annotations.
 
-        If you are a new user, please enter the access password you have been
-        given:
+Obviously, I'll also need to add an "is_private" field to the annotation
+templates, and support this in the "public_annotations" templates.
 
-            Password: [___________________]
+I think the name "public_annotations" is confusing -- I should probably rename
+the "public" application to "user", and change "public_annotations" to
+"user_annotations".
 
-                  <Sign Up>
+No, the public application should remain as "public", as that's the
+public-facing portion of the system.  I should just rename "public_annotations"
+to "user_annotions".
 
-        For existing users, please enter your username and password to sign in:
+I should then add a "public search" feature to the public web interface.
 
-            Username: [__________________]
+#############
 
-            Password: [__________________]
+Okay, so the specific changes I want to make are:
 
-                  <Sign In>
+ * Rename the "public_annotations" template to "user_annotations".
 
-                                                            <Admin Interface>
+ * Add an "is_public" field to the annotation template.
 
- * Now, the "/public/home" page.  What should this look like?
+ * Change the annotation template UI in the admin interface to support
+   importing and displaying the "is_public" field.
 
-    I guess just a menu of options:
+ * Change the "/search" endpoint to allow the user to search against public
+   annotations without having to supply an authentication token.
 
-        Add Ripple Account    (/public/accounts/add)
-        View Ripple Accounts  (/public/accounts/list)
-        Change Password       (/public/password)
-        Sign Out              (/public/signout)
+ * Add a "search" page to the public UI which lets the user search against
+   public annotations (only).
 
- * With these options implemented, we need one more feature: an "admin" page
-   for the public interface.  This is where an administrator can edit the
-   "public" app's data structures.
+ * Update the "specs.md" file to describe the updated API.
 
- * Two commands: Edit Public Users, and Edit Public Accounts.
+ * Update the "Annotation Database Docs" word document (and export to PDF) to
+   describe the latest changes.
 
+[Note that I also need to add support for Stellar addresses].

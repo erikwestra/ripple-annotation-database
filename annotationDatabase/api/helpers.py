@@ -46,7 +46,7 @@ def set_current_annotation(account, key, value):
 
             'account'
 
-                The address for the desired Ripple account, as a string.
+                The address for the desired account, as a string.
 
             'key'
 

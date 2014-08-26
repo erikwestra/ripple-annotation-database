@@ -44,8 +44,8 @@ def add(batch):
 
                             'account' (required)
 
-                                The address of the Ripple account this
-                                annotation is for.
+                                The address of the account this annotation is
+                                for.
 
                             'key' (required)
 
@@ -166,9 +166,9 @@ def hide(user_id, batch_num, account=None, annotation=None):
 
             'account' (optional)
 
-                The Ripple address for the account to hide the annotations for.
-                If this is not specified, the annotations for all accounts in
-                the given batch will be hidden.
+                The address for the account to hide the annotations for.  If
+                this is not specified, the annotations for all accounts in the
+                given batch will be hidden.
 
             'annotation' (optional)
 
@@ -376,7 +376,7 @@ def get(batch_number):
 
                     'account'
 
-                        The address of the Ripple account this annotation is
+                        The address of the account this annotation is
                         associated with.
 
                     'key'
@@ -463,8 +463,8 @@ def list_accounts(page=1, rpp=1000):
         'num_pages' is the number of pages of results that will be returned
         with the given 'rpp' value.
 
-        Each entry in the 'accounts' list will be the Ripple address of an
-        account, as a string.
+        Each entry in the 'accounts' list will be the address of an account, as
+        a string.
 
         If an error occurred, we return a dictionary which looks like this:
 
@@ -499,7 +499,7 @@ def account(account):
 
             'account'
 
-                The Ripple address of the desired account.
+                The address of the desired account.
 
         If the request was successful, we return a dictionary which looks like
         this:
@@ -551,7 +551,7 @@ def account_history(account):
 
             'account'
 
-                The Ripple address of the desired account.
+                The address of the desired account.
 
         If the request was successful, we return a dictionary which looks like
         this:
@@ -735,11 +735,10 @@ def search(query, page=1, rpp=1000, totals_only=False):
               'accounts'   : [...]}
 
         where 'num_matches' is the number of matching accounts and 'accounts'
-        is a list of strings identifying the Ripple accounts which have
-        matching annotation values.  Note that the 'accounts' list only
-        contains the current page of results; additional pages of results can
-        be returned by setting the 'page' and 'rpp' parameters to the
-        appropriate values.
+        is a list of strings identifying the accounts which have matching
+        annotation values.  Note that the 'accounts' list only contains the
+        current page of results; additional pages of results can be returned by
+        setting the 'page' and 'rpp' parameters to the appropriate values.
 
         If the 'totals_only' parameter was set to True, the returned dictionary
         will not include the 'accounts' or 'num_pages' entries.
