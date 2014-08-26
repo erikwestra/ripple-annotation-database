@@ -291,7 +291,7 @@ def view(request, template_id):
     template_entries = AnnotationTemplateEntry.objects.all()
     template_entries = template_entries.filter(template=template)
 
-    for template_entry in template_entries.order_by("label"):
+    for template_entry in template_entries.order_by('id'):
         entry = {}
         entry['annotation'] = template_entry.annotation.key
         entry['label']      = template_entry.label

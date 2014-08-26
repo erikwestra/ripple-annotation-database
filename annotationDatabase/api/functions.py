@@ -1079,6 +1079,9 @@ def get_template(template_name):
                 this annotation value.  If this is not present, no maximum
                 length will be imposed.
 
+        The annotations in the template will be in the order in which they were
+        defined by the person setting up the template.
+
         If the request was not successful, we return a dictionary which looks
         like this:
 

@@ -27,10 +27,10 @@
 
   {% for row in annotations %}
     <div class="form-group">
-      <label for="{{ row.annotation }}" class="col-sm-4 control-label">
+      <label for="{{ row.annotation }}" class="col-sm-8 control-label">
         {{ row.label }}
       </label>
-      <div class="col-sm-5">
+      <div class="col-sm-4">
     {% if row.type == "choice" %}
         <select class="form-control" name="{{ row.annotation }}"
          {% if forloop.first %}autofocus{% endif %}>
@@ -44,11 +44,12 @@
         </select>
     {% elif row.type == "field" %}
       {% if row.field_size != None %}
-          <input type="text" class="form-control" size="{{ row.field_size }}"
+          <input type="text" class="form-control"
                  name="{{ row.annotation }}" value="{{ row.value }}"
+                 style="width:{{ row.field_size }}em"
                  {% if forloop.first %}autofocus{% endif %}/>
       {% else %}
-          <input type="text" class="form-control" size="20"
+          <input type="text" class="form-control"
                  name="{{ row.annotation }}" value="{{ row.value }}"
                  {% if forloop.first %}autofocus{% endif %}/>
       {% endif %}
@@ -58,22 +59,11 @@
       <span class="error">
         {{ err_msg }}
       </span>
-{% endif %}
+    {% endif %}
       </div>
     </div>
     
   {% endfor %}
-
-<!--
-    <input type="text" name="address" class="form-control"
-           placeholder="Ripple Address" value="{{ address }}" autofocus/>
-{% if err_msg %}
-    <p class="error">
-      {{ err_msg }}
-      </p>
-{% endif %}
-
--->
 
     <div class="gap"></div>
 
@@ -91,5 +81,6 @@
         </button>
       </div>
     </div>
+    <br/>
   </form>
 {% endblock %}
