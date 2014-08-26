@@ -54,7 +54,7 @@ def list(request):
     except EmptyPage:
         users = []
 
-    return render(request, "admin/new_user_list.html",
+    return render(request, "admin/user_list.html",
                   {'menus'        : get_admin_menus(request),
                    'current_url'  : "/admin",
                    'page_heading' : "Ripple Annotation Database Admin",
@@ -100,7 +100,7 @@ def accounts(request, user_id):
     except EmptyPage:
         accounts = []
 
-    return render(request, "admin/new_user_accounts.html",
+    return render(request, "admin/user_accounts.html",
                   {'menus'        : get_admin_menus(request),
                    'current_url'  : "/admin/user/XXX/accounts",
                    'page_heading' : "Ripple Annotation Database Admin",
@@ -187,7 +187,7 @@ def delete(request, user_id):
     # Display the confirmation dialog.
 
     encoded_url = backHandler.encode_url(back_url)
-    return render(request, "admin/new_confirm.html",
+    return render(request, "admin/confirm.html",
                   {'menus'         : get_admin_menus(request),
                    'current_url'   : "/admin/user/%s/delete" % user_id,
                    'heading'       : "Delete User",
@@ -237,7 +237,7 @@ def remove_account(request, user_id, account):
     # Display the confirmation dialog.
 
     encoded_url = backHandler.encode_url(back_url)
-    return render(request, "admin/new_confirm.html",
+    return render(request, "admin/confirm.html",
                   {'menus'         : get_admin_menus(request),
                    'current_url'   : "/admin/user/%s/delete" % user_id,
                    'heading'       : "Remove Account",

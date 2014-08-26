@@ -68,7 +68,7 @@ def password(request):
 
     # If we get here, display the "change password" page.
 
-    return render(request, "authentication/new_change_password.html",
+    return render(request, "authentication/change_password.html",
                   {'shortcut_icon' : app_settings.SHORTCUT_ICON,
                    'heading_icon'  : app_settings.HEADING_ICON,
                    'err_msg'       : err_msg})

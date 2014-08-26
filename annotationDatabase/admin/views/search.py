@@ -60,7 +60,7 @@ def search(request):
         elif request.POST['submit'] == "Cancel":
             return HttpResponseRedirect("/admin")
 
-    return render(request, "admin/new_search.html", 
+    return render(request, "admin/search.html", 
                   {'title'         : "Ripple Annotation Database",
                    'heading'       : "Admin Interface",
                    'menus'         : get_admin_menus(request),
@@ -117,7 +117,7 @@ def search_results(request):
     if not response['success']:
         err_msg = response['error']
 
-    return render(request, "admin/new_search_results.html",
+    return render(request, "admin/search_results.html",
                   {'menus'       : get_admin_menus(request),
                    'current_url' : "/admin/search",
                    'query'       : query,

@@ -45,7 +45,7 @@ def list(request):
     templates = response['templates']
     num_pages = response['num_pages']
 
-    return render(request, "admin/new_template_list.html",
+    return render(request, "admin/template_list.html",
                   {'menus'        : get_admin_menus(request),
                    'current_url'  : "/admin/templates",
                    'page_heading' : "Ripple Annotation Database Admin",
@@ -248,7 +248,7 @@ def upload(request):
             # the uploaded template.
             return HttpResponseRedirect("/admin/templates")
 
-    return render(request, "admin/new_upload_template.html",
+    return render(request, "admin/upload_template.html",
                   {'menus'        : get_admin_menus(request),
                    'current_url'  : "/admin/templates/upload",
                    'page_heading' : "Ripple Annotation Database Admin",
@@ -346,7 +346,7 @@ def view(request, template_id):
 
     # Finally, display the admin page.
 
-    return render(request, "admin/new_view_template.html",
+    return render(request, "admin/view_template.html",
                   {'menus'        : get_admin_menus(request),
                    'current_url'  : "/admin/templates/view/XXX",
                    'page_heading' : "Ripple Annotation Database Admin",
@@ -384,7 +384,7 @@ def delete(request, template_id):
     # Display the confirmation dialog.
 
     encoded_url = backHandler.encode_url(back_url)
-    return render(request, "admin/new_confirm.html",
+    return render(request, "admin/confirm.html",
                   {'menus'         : get_admin_menus(request),
                    'current_url'   : "/admin/templates/delete/XXX",
                    'heading'       : "Delete Annotation Template",

@@ -39,7 +39,7 @@ def main(request):
     delete_url   = reverse(delete_path)
     finished_url = app_settings.MAIN_URL
 
-    return render(request, "authentication/new_user_list.html",
+    return render(request, "authentication/user_list.html",
                   {'shortcut_icon' : app_settings.SHORTCUT_ICON,
                    'heading_icon'  : app_settings.HEADING_ICON,
                    'user_label'    : app_settings.USER_LABEL,
@@ -118,7 +118,7 @@ def add_user(request):
 
     # If we get here, display the "add user" page.
 
-    return render(request, "authentication/new_edit_user.html",
+    return render(request, "authentication/edit_user.html",
                   {'shortcut_icon' : app_settings.SHORTCUT_ICON,
                    'heading_icon'  : app_settings.HEADING_ICON,
                    'user_label'    : app_settings.USER_LABEL,
@@ -208,7 +208,7 @@ def edit_user(request, user_id=None):
 
     # If we get here, display the "add user" page.
 
-    return render(request, "authentication/new_edit_user.html",
+    return render(request, "authentication/edit_user.html",
                   {'shortcut_icon' : app_settings.SHORTCUT_ICON,
                    'heading_icon'  : app_settings.HEADING_ICON,
                    'user_label'    : app_settings.USER_LABEL,
@@ -246,7 +246,7 @@ def delete_user(request, user_id=None):
             user.delete()
         return auth_controller.redirect_to_user_admin()
 
-    return render(request, "authentication/new_confirm.html",
+    return render(request, "authentication/confirm.html",
                   {'shortcut_icon' : app_settings.SHORTCUT_ICON,
                    'title'         : "Delete " + app_settings.USER_LABEL,
                    'heading_icon'  : app_settings.HEADING_ICON,

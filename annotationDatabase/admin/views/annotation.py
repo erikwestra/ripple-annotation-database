@@ -90,7 +90,7 @@ def add(request):
         elif request.POST['submit'] == "Cancel":
             return HttpResponseRedirect("/admin")
 
-    return render(request, "admin/new_add_batch.html",
+    return render(request, "admin/add_batch.html",
                   {'menus'        : get_admin_menus(request),
                    'current_url'  : "/admin/annotations/add",
                    'page_heading' : "Ripple Annotation Database Admin",
@@ -188,7 +188,7 @@ def upload(request):
 
         return HttpResponseRedirect("/admin")
 
-    return render(request, "admin/new_upload_batch.html",
+    return render(request, "admin/upload_batch.html",
                   {'menus'        : get_admin_menus(request),
                    'current_url'  : "/admin/annotations/upload",
                    'page_heading' : "Ripple Annotation Database Admin",
@@ -225,7 +225,7 @@ def select_account(request):
     if request.method == "POST" and request.POST['submit'] == "Done":
         return HttpResponseRedirect("/admin")
 
-    return render(request, "admin/new_account_list.html",
+    return render(request, "admin/account_list.html",
                   {'menus'        : get_admin_menus(request),
                    'current_url'  : "/admin/annotations/account",
                    'page_heading' : "Ripple Annotation Database Admin",
@@ -271,7 +271,7 @@ def select_batch(request):
     if request.method == "POST" and request.POST['submit'] == "Done":
         return HttpResponseRedirect("/admin")
 
-    return render(request, "admin/new_batch_list.html",
+    return render(request, "admin/batch_list.html",
                   {'menus'        : get_admin_menus(request),
                    'current_url'  : "/admin/annotations/batch",
                    'page_heading' : "Ripple Annotation Database Admin",
@@ -326,7 +326,7 @@ def view_batch(request, batch_number):
     except EmptyPage:
         annotations = []
 
-    return render(request, "admin/new_view_batch.html",
+    return render(request, "admin/view_batch.html",
                   {'menus'        : get_admin_menus(request),
                    'current_url'  : "/admin/annotations/batch/XXX",
                    'page_heading' : "Ripple Annotation Database Admin",

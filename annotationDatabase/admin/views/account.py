@@ -58,7 +58,7 @@ def view_current(request, account):
     except EmptyPage:
         annotations = []
 
-    return render(request, "admin/new_view_current.html",
+    return render(request, "admin/view_current.html",
                   {'menus'        : get_admin_menus(request),
                    'current_url'  : "/admin/accounts/XXX/current",
                    'page_heading' : "Ripple Annotation Database Admin",
@@ -165,7 +165,7 @@ def view_history(request, account):
     except EmptyPage:
         history = []
 
-    return render(request, "admin/new_view_history.html",
+    return render(request, "admin/view_history.html",
                   {'menus'        : get_admin_menus(request),
                    'current_url'  : "/admin/accounts/XXX/history",
                    'page_heading' : "Ripple Annotation Database Admin",

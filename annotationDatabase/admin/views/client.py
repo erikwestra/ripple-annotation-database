@@ -52,7 +52,7 @@ def list(request):
         elif request.POST['submit'] == "Add":
             return HttpResponseRedirect("/admin/clients/add")
 
-    return render(request, "admin/new_client_list.html",
+    return render(request, "admin/client_list.html",
                   {'menus'        : get_admin_menus(request),
                    'current_url'  : "/admin/clients",
                    'page_heading' : "Ripple Annotation Database Admin",
@@ -110,7 +110,7 @@ def add(request):
 
     # If we get here, we're going to display the "Add Client" page.  Do so.
 
-    return render(request, "admin/new_edit_client.html",
+    return render(request, "admin/edit_client.html",
                   {'menus'        : get_admin_menus(request),
                    'current_url'  : "/admin/clients/add",
                    'page_heading' : "Ripple Annotation Database Admin",
@@ -170,7 +170,7 @@ def edit(request, client_id):
 
     # If we get here, we're going to display the "Edit Client" page.  Do so.
 
-    return render(request, "admin/new_edit_client.html",
+    return render(request, "admin/edit_client.html",
                   {'menus'        : get_admin_menus(request),
                    'current_url'  : "/admin/clients/edit/XXX",
                    'page_heading' : "Ripple Annotation Database Admin",
@@ -204,7 +204,7 @@ def delete(request, client_id):
     # Display the confirmation dialog.
 
     encoded_url = backHandler.encode_url(back_url)
-    return render(request, "admin/new_confirm.html",
+    return render(request, "admin/confirm.html",
                   {'menus'         : get_admin_menus(request),
                    'current_url'   : "/admin/clients/delete/XXX",
                    'heading'       : "Delete Client System",

@@ -70,7 +70,7 @@ def main(request):
                 create_session(request, user)
                 return HttpResponseRedirect("/public/accounts")
 
-    return render(request, "public/new_main.html",
+    return render(request, "public/main.html",
                   {'signup_err_msg'  : signup_err_msg,
                    'signin_username' : signin_username,
                    'signin_err_msg'  : signin_err_msg})
@@ -152,7 +152,7 @@ def signup(request):
 
     # Finally, display the form to the user.
 
-    return render(request, "public/new_signup.html",
+    return render(request, "public/signup.html",
                   {'signup_password' : signup_password,
                    'username'        : username,
                    'password1'       : password1,
@@ -195,7 +195,7 @@ def accounts(request):
     for account in accounts_in_page:
         accounts.append(account.address)
 
-    return render(request, "public/new_accounts.html",
+    return render(request, "public/accounts.html",
                   {'menus'         : get_public_menus(request),
                    'current_url'   : "/public/accounts",
                    'username'      : get_username(request),
@@ -265,7 +265,7 @@ def add_account(request):
 
     # Finally, display the form to the user.
 
-    return render(request, "public/new_add_account.html",
+    return render(request, "public/add_account.html",
                   {'menus'       : get_public_menus(request),
                    'current_url' : "/public/accounts/add",
                    'address'     : address,
@@ -484,7 +484,7 @@ def edit_account(request, account):
 
     # Finally, show our form to the user.
 
-    return render(request, "public/new_edit_account.html",
+    return render(request, "public/edit_account.html",
                   {'menus'       : get_public_menus(request),
                    'current_url' : "/public/accounts/edit",
                    'account'     : account,
@@ -515,7 +515,7 @@ def remove_account(request, account):
 
     # Display the confirmation dialog.
 
-    return render(request, "public/new_remove_account.html",
+    return render(request, "public/remove_account.html",
                   {'menus'       : get_public_menus(request),
                    'current_url' : "/public/accounts/remove",
                    'account'     : account})
@@ -583,7 +583,7 @@ def change_password(request):
 
     # Finally, display the form to the user.
 
-    return render(request, "public/new_change_password.html",
+    return render(request, "public/change_password.html",
                   {'menus'           : get_public_menus(request),
                    'current_url'     : "/public/accounts/remove",
                    'old_password'    : old_password,

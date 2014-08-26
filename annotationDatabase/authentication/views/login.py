@@ -76,7 +76,7 @@ def login(request):
 
     # If we get here, display the "login" page.
 
-    return render(request, "authentication/new_login.html",
+    return render(request, "authentication/login.html",
                   {'shortcut_icon' : app_settings.SHORTCUT_ICON,
                    'heading_icon'  : app_settings.HEADING_ICON,
                    'heading'       : app_settings.LOGIN_HEADING,
