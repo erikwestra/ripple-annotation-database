@@ -30,20 +30,20 @@ I should then add a "public search" feature to the public web interface.
 
 Okay, so the specific changes I want to make are:
 
- * Rename the "public_annotations" template to "user_annotations".
+ + Rename the "public_annotations" template to "user_annotations".
 
- * Add an "is_public" field to the annotation template.
+ + Add an "is_public" field to the annotation template.
 
- * Change the annotation template UI in the admin interface to support
+ + Change the annotation template UI in the admin interface to support
    importing and displaying the "is_public" field.
 
- * Change the "/search" endpoint to allow the user to search against public
+ + Change the "/search" endpoint to allow the user to search against public
    annotations without having to supply an authentication token.
 
  * Add a "search" page to the public UI which lets the user search against
    public annotations (only).
 
- * Update the "specs.md" file to describe the updated API.
+ ~ Update the "specs.md" file to describe the updated API.
 
  * Update the "Annotation Database Docs" word document (and export to PDF) to
    describe the latest changes.

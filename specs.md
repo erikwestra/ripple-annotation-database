@@ -86,6 +86,13 @@ annotation entry in the template will have the following information:
 > > A string to be displayed to the user to identify the annotation, for
 > > example, "phone number".
 > 
+> `public`
+> 
+> > A boolean indicating whether or not this is a "public" annotation.  Public
+> > annotations can be queried against by anyone, while private annotations
+> > (ie, those with public=false) can only be searched against by
+> > suitably-authorized clients.
+> 
 > `type`
 > 
 > > A string indicating the type of annotation value to be entered.  The
@@ -614,9 +621,11 @@ The Ripple Annotation API currently supports the following endpoints:
 > > 
 > > The following query string parameters can be supplied:
 > > 
-> > > `auth_token` _(required)_
+> > > `auth_token` _(optional)_
 > > > 
-> > > > The calling system's authentication token.
+> > > > The calling system's authentication token.  Note that this is required
+> > > > to search against any non-public annotations, but can be skipped if the
+> > > > search is only against public annotations.
 > > > 
 > > > `query` _(required)_
 > > > 
@@ -922,6 +931,60 @@ The Ripple Annotation API currently supports the following endpoints:
 > > > 
 > > > > The maximum allowable length for this annotation value.  If this is not
 > > > > present, no maximum length will be imposed.
+> > 
+> > If the request was not successful, the returned JSON object will look like
+> > this:
+> > 
+> > >     {
+> > >       success: false,
+> > >       error: "..."
+> > >     }
+> > 
+> > In this case, the `error` field will be a string describing why the request
+> > failed.
+> 
+> __`/public_annotations`__
+> 
+> > Return a list of accounts which have the given public annotation.
+> 
+> > The following query string parameters can be supplied:
+> > 
+> > > `annotation` _(required)_
+> > > 
+> > > > The public annotation key to search for.
+> > > 
+> > > `page` _(optional)_
+> > > 
+> > > > Which page of results to return.  By default, we return page 1, which
+> > > > is the first page of matching accounts.  Increasing page numbers will
+> > > > return more accounts, ascending in alphabetical order.
+> > > 
+> > > `rpp` _(optional)_
+> > > 
+> > > > The number of results to return per page.  By default, we return a
+> > > > maximum of 1000 accounts in each page of results.
+> > > 
+> > We find all matching accounts which have values for the given public
+> > annotation key.
+> > 
+> > Upon completion, the server will return an HTTP status code of `200` (OK),
+> > and the body of the response will have a content-type value of
+> > `application/json`.  The body of the response will consist of a JSON object
+> > describing the result of the API call.  If the request was successful, the
+> > returned JSON object will look like this:
+> > 
+> > >     {
+> > >       success      : true,
+> > >       num_accounts : 999,
+> > >       num_pages    : 12,
+> > >       accounts     : [...]
+> > >     }
+> > 
+> > where `num_accounts` is the total number of accounts which have the given
+> > public annotation.  The `accounts` array will contain the current page of
+> > matching accounts, where each item in the array will itself be an array
+> > with two entries: the address of the matching account, and the public
+> > annotation value.
 > > 
 > > If the request was not successful, the returned JSON object will look like
 > > this:

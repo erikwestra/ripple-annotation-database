@@ -220,11 +220,18 @@ def search(request):
     else:
         return HttpResponseNotAllowed(["GET", "POST"])
 
-    if not helpers.auth_token_valid(params.get("auth_token")):
-        return HttpResponse(json.dumps({'success' : False,
-                                        'error'   : 'Invalid or missing ' +
-                                                    'authentication token'}),
-                            content_type="application/json")
+    if "auth_token" not in params:
+        public_only = True
+    else:
+        public_only = False
+
+    if not public_only:
+        if not helpers.auth_token_valid(params.get("auth_token")):
+            return HttpResponse(json.dumps({'success' : False,
+                                            'error'   : 'Invalid or missing ' +
+                                                        'authentication ' +
+                                                        'token'}),
+                                content_type="application/json")
 
     if "query" in params:
         query = params['query']
@@ -251,7 +258,8 @@ def search(request):
         totals_only = False
 
     response = functions.search(query=query, page=page, rpp=rpp,
-                                totals_only=totals_only)
+                                totals_only=totals_only,
+                                public_only=public_only)
 
     return HttpResponse(json.dumps(response), content_type="application/json")
 
@@ -319,3 +327,29 @@ def get_template(request, template_name):
 
     return HttpResponse(json.dumps(response), content_type="application/json")
 
+#############################################################################
+
+def public_annotations(request):
+    """ Respond to the "public_annotations" URL.
+    """
+    if request.method == "GET":
+        params = request.GET
+    elif request.method == "POST":
+        params = request.POST
+    else:
+        return HttpResponseNotAllowed(["GET", "POST"])
+
+    if "annotation" not in params:
+        return HttpResponse(json.dumps({'success' : False,
+                                        'error'   : 'Missing required ' +
+                                                    '"annotation" ' +
+                                                    'parameter'}),
+                            content_type="application/json")
+    annotation = params['annotation']
+    page       = params.get("page", 1)
+    rpp        = params.get("rpp",  100)
+
+    response = functions.public_annotations(annotation, page=page, rpp=rpp)
+
+    return HttpResponse(json.dumps(response), content_type="application/json")
+    

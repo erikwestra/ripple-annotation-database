@@ -60,6 +60,9 @@
           Label
         </td>
         <td nowrap>
+          Is Public
+        </td>
+        <td nowrap>
           Type
         </td>
         <td nowrap>
@@ -80,6 +83,13 @@
         </td>
         <td nowrap>
           {{ entry.label }}
+        </td>
+        <td nowrap>
+    {% if entry.public %}
+          Y
+    {% else %}
+          N
+    {% endif %}
         </td>
         <td nowrap>
           {{ entry.type }}

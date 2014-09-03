@@ -105,7 +105,7 @@ def upload(request):
                 err_msg = "That spreadsheet is empty."
 
         if err_msg == None:
-            if sheet.ncols < 4:
+            if sheet.ncols < 5:
                 err_msg = "That spreadsheet doesn't have enough data."
 
         def _get_text(cell):
@@ -122,19 +122,22 @@ def upload(request):
             # Extract the annotation template entries from the spreadsheet.
 
             entries = [] # List of annotation template entries.  Each list item
-                         # is a dictionary with 'annotation', 'label', 'type',
-                         # 'default' entries, and possibly 'choices',
-                         # 'field_size', 'field_required', 'field_min_length'
-                         # and 'field_max_length' entries, as appropriate.
+                         # is a dictionary with 'annotation', 'label',
+                         # 'public', 'type', 'default' entries, and possibly
+                         # 'choices', 'field_size', 'field_required',
+                         # 'field_min_length' and 'field_max_length' entries,
+                         # as appropriate.
 
             for row in range(1, sheet.nrows):
                 annotation = _get_text(sheet.cell(row, 0))
                 label      = _get_text(sheet.cell(row, 1))
-                type       = _get_text(sheet.cell(row, 2))
-                default    = _get_text(sheet.cell(row, 3))
+                public     = _get_text(sheet.cell(row, 2))
+                type       = _get_text(sheet.cell(row, 3))
+                default    = _get_text(sheet.cell(row, 4))
 
                 if (annotation == "" and label == ""
                                      and type == ""
+                                     and public == ""
                                      and default == ""):
                     # Skip blank rows.
                     continue
@@ -147,6 +150,14 @@ def upload(request):
                     err_msg = "Missing annotation label in row %d" % (row+1)
                     break
 
+                if public in ["Y", "y"]:
+                    public = True
+                elif public in ["N", "n"]:
+                    public = False
+                else:
+                    err_msg = "Invalid public value in row %d" % (row+1)
+                    break
+
                 if type not in ["choice", "field"]:
                     err_msg = "Invalid annotation type in row %d" % (row+1)
                     break
@@ -154,7 +165,7 @@ def upload(request):
                 if type == "choice":
                     choices = []
 
-                    col = 4
+                    col = 5
                     while col < sheet.ncols:
                         text = _get_text(sheet.cell(row, col))
                         if text != "":
@@ -175,7 +186,7 @@ def upload(request):
                 elif type == "field":
                     options = {}
 
-                    col = 4
+                    col = 5
                     while col < sheet.ncols:
                         text = _get_text(sheet.cell(row, col))
                         if text != "":
@@ -225,6 +236,7 @@ def upload(request):
                 entry = {}
                 entry['annotation'] = annotation
                 entry['label']      = label
+                entry['public']     = public
                 entry['type']       = type
                 entry['default']    = default
 
@@ -283,10 +295,10 @@ def view(request, template_id):
     page = int(params.get("page", "1"))
 
     all_entries = [] # List of entries to display.  Each list item is a
-                     # dictionary with "annotation", "label", "type", "default"
-                     # and "extra" entries.  Note that the "extra" entry is a
-                     # list of strings to display for the various field
-                     # options or choices, as appropriate.
+                     # dictionary with "annotation", "label", "public", "type",
+                     # "default" and "extra" entries.  Note that the "extra"
+                     # entry is a list of strings to display for the various
+                     # field options or choices, as appropriate.
 
     template_entries = AnnotationTemplateEntry.objects.all()
     template_entries = template_entries.filter(template=template)
@@ -295,6 +307,7 @@ def view(request, template_id):
         entry = {}
         entry['annotation'] = template_entry.annotation.key
         entry['label']      = template_entry.label
+        entry['public']     = template_entry.public
         entry['type']       = template_entry.type
         entry['default']    = template_entry.default
 

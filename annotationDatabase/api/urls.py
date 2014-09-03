@@ -17,25 +17,28 @@ urlpatterns = patterns('annotationDatabase.api.views',
     url(r'^list',  "list"),
     url(r'^list/', "list"),
 
-    url('^get/(?P<batch_number>[^/]+)',  'get'),
-    url('^get/(?P<batch_number>[^/]+)/', 'get'),
+    url(r'^get/(?P<batch_number>[^/]+)',  'get'),
+    url(r'^get/(?P<batch_number>[^/]+)/', 'get'),
 
     url(r'^accounts',  "accounts"),
     url(r'^accounts/', "accounts"),
 
-    url('^account/(?P<account>[^/]+)',  'account'),
-    url('^account/(?P<account>[^/]+)/', 'account'),
+    url(r'^account/(?P<account>[^/]+)',  'account'),
+    url(r'^account/(?P<account>[^/]+)/', 'account'),
 
-    url('^account_history/(?P<account>[^/]+)',  'account_history'),
-    url('^account_history/(?P<account>[^/]+)/', 'account_history'),
+    url(r'^account_history/(?P<account>[^/]+)',  'account_history'),
+    url(r'^account_history/(?P<account>[^/]+)/', 'account_history'),
 
     url(r'^search',  "search"),
     url(r'^search/', "search"),
 
-    url('^set_template/(?P<template_name>[^/]+)',  'set_template'),
-    url('^set_template/(?P<template_name>[^/]+)/', 'set_template'),
+    url(r'^set_template/(?P<template_name>[^/]+)',  'set_template'),
+    url(r'^set_template/(?P<template_name>[^/]+)/', 'set_template'),
 
-    url('^get_template/(?P<template_name>[^/]+)',  'get_template'),
-    url('^get_template/(?P<template_name>[^/]+)/', 'get_template'),
+    url(r'^get_template/(?P<template_name>[^/]+)',  'get_template'),
+    url(r'^get_template/(?P<template_name>[^/]+)/', 'get_template'),
+
+    url(r'^public_annotations',  "public_annotations"),
+    url(r'^public_annotations/', "public_annotations"),
 )
 

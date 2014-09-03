@@ -129,6 +129,7 @@ class AnnotationTemplateEntry(models.Model):
     id               = models.AutoField(primary_key=True)
     template         = models.ForeignKey(AnnotationTemplate)
     annotation       = models.ForeignKey(AnnotationKey)
+    public           = models.NullBooleanField()
     label            = models.TextField()
     type             = models.TextField(choices=[("choice", "choice"),
                                                  ("field",  "field")],

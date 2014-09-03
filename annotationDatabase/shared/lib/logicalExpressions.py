@@ -26,7 +26,8 @@
 
     We provide a function for parsing a string into a LogicalExpression object.
     The LogicalExpression object can then be converted back to a string for
-    display, or it can be used to build a Django database query.
+    display, or it can be used to build a Django database query.  You can also
+    retrieve a list of the variables used in a LogicalExpression object.
 """
 from django.db.models import Q
 
@@ -173,6 +174,12 @@ class LogicalExpression(object):
         """
         raise RuntimeError("Must be overridden")
 
+
+    def get_variables(self):
+        """ Return a list of the variables in this logical expression.
+        """
+        raise RuntimeError("Must be overridden")
+
     # =========================
     # == CONVENIENCE METHODS ==
     # =========================
@@ -243,6 +250,12 @@ class SimpleExpression(LogicalExpression):
 
             return result
 
+
+    def get_variables(self):
+        """ Implement LogicalExpression.get_variables().
+        """
+        return [self._variable]
+
 #############################################################################
 
 class ComplexExpression(LogicalExpression):
@@ -292,6 +305,15 @@ class ComplexExpression(LogicalExpression):
         elif self._logical_operator == "or":
             return left_filter | right_filter
 
+
+    def get_variables(self):
+        """ Implement LogicalExpression.get_variables().
+        """
+        variables = []
+        variables.extend(self._left_expression.get_variables())
+        variables.extend(self._right_expression.get_variables())
+        return variables
+
 #############################################################################
 
 class NegationExpression(LogicalExpression):
@@ -318,4 +340,10 @@ class NegationExpression(LogicalExpression):
         """
         filter = self._expression.to_django_query(converter)
         return ~filter
+
+
+    def get_variables(self):
+        """ Implement LogicalExpression.get_variables().
+        """
+        return self._expression.get_variables()
 

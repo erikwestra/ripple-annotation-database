@@ -606,6 +606,91 @@ def signout(request):
     return HttpResponseRedirect("/public")
 
 #############################################################################
+
+def select_public(request):
+    """ Respond to the "/public/public_annotations" URL.
+
+        We let the user choose which public annotation to display.
+    """
+    session = get_session(request)
+    if session != None:
+        return HttpResponseRedirect("/public/accounts")
+
+    response = functions.get_template(settings.PUBLIC_TEMPLATE_NAME)
+    if not response['success']:
+        return HttpResponse("Internal error:" + response['error'])
+
+    public_annotations = [] # List of available annotation.  Each list item is
+                            # a (label, key) tuple.
+
+    for annotation in response['template']:
+        if annotation['public']:
+            public_annotations.append((annotation['label'],
+                                       annotation['annotation']))
+
+    public_annotations.sort()
+
+    return render(request, "public/select_public.html",
+                  {'public_annotations' : public_annotations})
+
+#############################################################################
+
+def view_public(request, annotation):
+    """ Respond to the "/public/public_annotations/XXX" URL.
+
+        We display the set of accounts with the given annotation key.
+    """
+    session = get_session(request)
+    if session != None:
+        return HttpResponseRedirect("/public/accounts")
+
+    if request.method == "GET":
+        params = request.GET
+    elif request.method == "POST":
+        params = request.POST
+    else:
+        return HttpResponse("Bad HTTP Method")
+
+    page = int(params.get("page", "1"))
+
+    response = functions.public_annotations(annotation, page=page, rpp=20)
+    if not response['success']:
+        return HttpResponse("Internal error:" + response['error'])
+
+    num_pages = response['num_pages']
+    accounts  = response['accounts']
+
+    response = functions.get_template(settings.PUBLIC_TEMPLATE_NAME)
+    if not response['success']:
+        return HttpResponse("Internal error:" + response['error'])
+
+    annotation_label = None
+    for entry in response['template']:
+        if annotation == entry['annotation']:
+            annotation_label = entry['label']
+
+    return render(request, "public/view_public.html",
+                  {'annotation' : annotation_label,
+                   'page'       : page,
+                   'num_pages'  : num_pages,
+                   'accounts'   : accounts})
+
+"""
+
+    Public Annotations
+
+        [previous]    Viewing page 1 of 1   [next]
+
+        Account Address      XXXXXXX
+        ---------------      -------
+        r123...              Y
+        r345..               Y
+        r234...              N
+
+        <Done>
+"""
+
+#############################################################################
 #                                                                           #
 #                    P R I V A T E   D E F I N I T I O N S                  #
 #                                                                           #

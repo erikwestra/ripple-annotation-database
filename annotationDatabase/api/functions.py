@@ -15,6 +15,7 @@ import simplejson as json
 from django.db.models      import Q
 from django.utils.timezone import utc
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.conf           import settings
 
 from annotationDatabase.shared.models import *
 from annotationDatabase.shared.lib    import logicalExpressions
@@ -665,7 +666,7 @@ def account_history(account):
 
 #############################################################################
 
-def search(query, page=1, rpp=1000, totals_only=False):
+def search(query, page=1, rpp=1000, totals_only=False, public_only=False):
     """ Return a list of the accounts which match the given search query
 
         The parameters are as follows:
@@ -688,6 +689,14 @@ def search(query, page=1, rpp=1000, totals_only=False):
                 If True, only the total number of matches, not the individual
                 accounts, will be returned.  Note that in this case, the 'page'
                 and 'rpp' parameters do not apply.
+
+            'public_only'
+
+                If True, the search query will be limited to
+                publically-available annotations.  Any attempt to query against
+                a private annotation will result in an error.  Note that the
+                public flag is taken from the user template named in our
+                application settings.
 
         The search query consists of one or more query terms, where each query
         term is a string of the form:
@@ -732,7 +741,7 @@ def search(query, page=1, rpp=1000, totals_only=False):
             {'success'     : true,
              'num_matches' : 999,
              'num_pages'   : 12,
-              'accounts'   : [...]}
+             'accounts'   : [...]}
 
         where 'num_matches' is the number of matching accounts and 'accounts'
         is a list of strings identifying the accounts which have matching
@@ -774,6 +783,22 @@ def search(query, page=1, rpp=1000, totals_only=False):
 
         return q1 & q2
 
+    if public_only:
+        # Check that the query only includes public annotations.
+
+        response = get_template(settings.PUBLIC_TEMPLATE_NAME)
+        if not response['success']:
+            return response
+
+        is_public = {} # Maps annotation key to boolean.
+        for annotation in response['template']:
+            is_public[annotation['annotation']] = annotation['public']
+
+        for annotation in expression.get_variables():
+            if not is_public.get(annotation, False):
+                return {'success' : False,
+                        'error'   : "%s is a private annotation" % annotation}
+
     query       = expression.to_django_query(converter=expressionConverter)
     results     = CurrentAnnotation.objects.filter(query).distinct("account")
     num_matches = results.count()
@@ -802,6 +827,87 @@ def search(query, page=1, rpp=1000, totals_only=False):
 
 #############################################################################
 
+def public_annotations(annotation, page=1, rpp=100):
+    """ Return a list of accounts which have the given public annotation.
+
+        The parameters are as follows:
+
+            'annotation'
+
+                The public annotation key to search for.
+
+            'page'
+
+                Which page of results to return. Note that page 1 is the first
+                page of search results.
+
+            'rpp'
+
+                The number of results to return per page.
+
+        We find all matching accounts which have values for the given public
+        annotation key.
+
+        If the request was successful, we return a dictionary which looks like
+        this:
+
+            {'success'      : true,
+             'num_accounts' : 999,
+             'num_pages'    : 12,
+             'accounts'     : [...]}
+
+        where 'num_accounts' is the total number of accounts which have the
+        given public annotation.  The 'accounts' list will contain the current
+        page of matching accounts, where each item in the list is an (account,
+        value) tuple.  'account' will be the address of the matching Ripple
+        account, and 'value' will be the value of the public annotation.
+
+        If an error occurred, we return a dictionary which looks like this:
+
+            {'success' : False,
+             'error'   : "..."}
+
+        where 'error' is a string describing why the request failed.
+    """
+    response = get_template(settings.PUBLIC_TEMPLATE_NAME)
+    if not response['success']:
+        return response
+
+    found = False
+    for entry in response['template']:
+        if annotation == entry['annotation']:
+            if entry['public']:
+                found = True
+                break
+
+    if not found:
+        return {'success' : False,
+                'error'   : "%s is not a public annotation" % annotation}
+
+    results      = CurrentAnnotation.objects.filter(key__key=annotation)
+    num_accounts = results.count()
+
+    paginator = Paginator(results.order_by("account__address"), rpp)
+
+    try:
+        annotations_in_page = paginator.page(page)
+    except PageNotAnInteger:
+        annotations_in_page = paginator.page(1)
+    except EmptyPage:
+        annotations_in_page = []
+
+    accounts = []
+    for cur_annotation in annotations_in_page:
+        accounts.append((cur_annotation.account.address,
+                         cur_annotation.value.value))
+
+    return {'success'      : True,
+            'num_accounts' : num_accounts,
+            'num_pages'    : paginator.num_pages,
+            'accounts'     : accounts}
+
+#############################################################################
+
 def set_template(template_name, template):
     """ Add or update an annotation template in the database.
 
@@ -826,6 +932,10 @@ def set_template(template_name, template):
 
                         A string to be displayed to the user to identify the
                         annotation, for example, "phone number".
+
+                    'public' (required)
+
+                        True if this annotation should be public, else false.
 
                     'type' (required)
 
@@ -925,6 +1035,11 @@ def set_template(template_name, template):
                     'error'   : "template entry missing required " +
                                 "'label' field"}
 
+        if "public" not in src_entry:
+            return {'success' : False,
+                    'error'   : "Template entry missing required " +
+                                "'public' field"}
+
         if "type" not in src_entry:
             return {'success' : False,
                     'error'   : "template entry missing required " +
@@ -952,6 +1067,7 @@ def set_template(template_name, template):
         entry = AnnotationTemplateEntry()
         entry.annotation = annotationKey
         entry.label      = src_entry['label']
+        entry.public     = src_entry['public']
         entry.type       = src_entry['type']
         entry.default    = src_entry.get("default")
 
@@ -1019,6 +1135,10 @@ def get_template(template_name):
 
                 A string to be displayed to the user to identify the
                 annotation, for example, "phone number".
+
+            'public'
+
+                True if the annotation is public, else False.
 
             'type'
 
@@ -1102,6 +1222,7 @@ def get_template(template_name):
         item = {}
         item['annotation'] = entry.annotation.key
         item['label']      = entry.label
+        item['public']     = entry.public
         item['type']       = entry.type
 
         if entry.default != None:
