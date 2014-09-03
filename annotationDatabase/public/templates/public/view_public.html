@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>Ripple Annotation Database</title>
+
+    <link rel="stylesheet"
+          href="{{ STATIC_URL }}css/bootstrap.min.css">
+
+    <link rel="shortcut icon" href="{{ STATIC_URL }}images/icon_small.png">
+
+    <style type="text/css">
+      body {
+        padding-top: 40px;
+        padding-bottom: 40px;
+        background-color: #eee;
+      }
+
+      .main-panel {
+        max-width: 800px;
+        padding: 15px;
+        margin: 0 auto;
+      }
+
+      .main-panel .heading-image {
+        float: none;
+        display: inline-block;
+        vertical-align: middle;
+        margin-right: -4px;
+      }
+
+      .main-panel .heading-text {
+        float: none;
+        display: inline-block;
+        vertical-align:middle;
+        font-size: 30px;
+        font-weight: 500;
+        line-height: 1.1;
+        white-space: nowrap;
+      }
+
+      .blue {
+        color: #024B8A;
+      }
+
+      .bold {
+        font-weight: bold;
+      }
+
+      .fillspace {
+        display: inline-block;
+        margin: 0;
+      }
+  
+      .pager-text {
+        font-variant: italic;
+      }
+  
+      div.gap {
+        height: 10px;
+      }
+    </style>
+
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js">
+      </script>
+      <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js">
+      </script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="panel main-panel">
+      <div>
+        <img class="heading-image"
+             src="{{ STATIC_URL }}images/icon_large.png"/><!--
+     --><h2 class="heading-text blue">&nbsp;Ripple Annotation Database</h2>
+      </div>
+
+      <ul class="pager">
+{% if page > 1 %}
+        <li class="previous">
+          <a href="?page={{ page|add:"-1" }}">&larr; Previous</a>
+        </li>
+{% else %}
+        <li class="previous disabled"><a href="#">&larr; Previous</a></li>
+{% endif %}
+
+        <li>
+          <h5 class="blue fillspace">
+            Viewing page {{ page }} of {{ num_pages }}
+          </h5>
+        </li>
+
+{% if page < num_pages %}
+        <li class="next">
+          <a href="?page={{ page|add:"1" }}">Next &rarr;</a>
+        </li>
+{% else %}
+        <li class="next disabled"><a href="#">Next &rarr;</a></li>
+{% endif %}
+      </ul> 
+
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <td nowrap class="bold">
+              Account Address
+            </td>
+            <td nowrap class="bold">
+              {{ annotation }}
+            </td>
+          </tr>
+        </thead>
+        <tbody>
+{% for account,value in accounts %}
+        <tr>
+          <td nowrap>
+            {{ account }}
+          </td>
+          <td nowrap>
+            {{ value }}
+          </td>
+        </tr>
+{% endfor %}
+        </tbody>
+      </table>
+
+      <div class="gap"></div>
+
+      <div class="pull-right">
+        <a href="/public" class="btn btn-default" role="button">
+          Done
+        </a>
+      </div>
+      <div class="clearfix"></div>
+    </div>
+
+    <!-- Load our javascript libraries here to speed up the loading of the
+         page. -->
+
+    <script type="text/javascript" src="{{ STATIC_URL }}js/jquery-1.11.1.min.js">
+    </script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/bootstrap.min.js">
+    </script>
+  </body>
+</html>
+
