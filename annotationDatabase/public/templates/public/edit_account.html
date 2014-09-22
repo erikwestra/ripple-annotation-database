@@ -31,7 +31,15 @@
         {{ row.label }}
       </label>
       <div class="col-sm-4">
-    {% if row.type == "choice" %}
+    {% if row.type == "boolean" %}
+        <div class="checkbox">
+      {% if row.value == True %}
+      <input type="checkbox" name="{{ row.annotation }}" checked></input>
+      {% else %}
+      <input type="checkbox" name="{{ row.annotation }}"></input>
+      {% endif %}
+        </div>
+    {% elif row.type == "choice" %}
         <select class="form-control" name="{{ row.annotation }}"
          {% if forloop.first %}autofocus{% endif %}>
       {% for key,label in row.choices %}

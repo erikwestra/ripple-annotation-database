@@ -13,6 +13,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.conf           import settings
 
 from annotationDatabase.shared.models import *
+from annotationDatabase.shared.lib    import booleans
 from annotationDatabase.api           import functions
 
 #############################################################################
@@ -322,6 +323,11 @@ def edit_account(request, account):
                      #          value to be entered.  The following type values
                      #          are currently supported:
                      #
+                     #              "boolean"
+                     #
+                     #                  The user can choose between "Yes" and
+                     #                  "No" values.
+                     #
                      #              "choice"
                      #
                      #                  The user can choose between two or more
@@ -386,11 +392,30 @@ def edit_account(request, account):
         annotation['value']      = values.get(entry['annotation'],
                                               entry.get('default', ""))
         annotation['label']      = entry['label']
-        annotation['type']       = entry['type']
 
-        if entry['type'] == "choice":
+        if booleans.is_boolean(entry):
+
+            annotation['type'] = "boolean"
+            annotation['entry'] = entry # Save for later.
+
+            print repr(annotation['value'])
+
+            if annotation['value'] == booleans.get_true_choice(entry):
+                annotation['value'] = True
+            elif annotation['value'] == booleans.get_false_choice(entry):
+                annotation['value'] = False
+            else:
+                annotation['value'] = False
+
+        elif entry['type'] == "choice":
+
+            annotation['type']    = "choice"
             annotation['choices'] = entry['choices']
+
         elif entry['type'] == "field":
+
+            annotation['type'] = "field"
+
             if "field_size" in entry:
                 annotation['field_size'] = entry['field_size']
             else:
@@ -437,7 +462,16 @@ def edit_account(request, account):
             err_msg = None # initially.
             value   = request.POST.get(annotation['annotation'], "")
 
-            if annotation['type'] == "choice":
+            if annotation['type'] == "boolean":
+
+                if value != "":
+                    value = booleans.get_true_choice(annotation['entry'])
+                else:
+                    value = booleans.get_false_choice(annotation['entry'])
+                changes[annotation['annotation']] = value
+                print repr(value)
+
+            elif annotation['type'] == "choice":
 
                 if value != annotation['value']:
                     changes[annotation['annotation']] = value
