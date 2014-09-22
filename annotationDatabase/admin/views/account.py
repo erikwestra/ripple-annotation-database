@@ -102,9 +102,26 @@ def view_history(request, account):
     history_list = [] # List of values to display.  Each item is a dictionary
                       # with the following values:
                       #
+                      #    'timestamp'
+                      #
+                      #        The date and time at which the annotation value
+                      #        was set or hidden, as an integer number of
+                      #        seconds since midnight on the 1st of January,
+                      #        1970 ("unix time"), in UTC.
+                      #
+                      #    'batch_number'
+                      #
+                      #        The batch number where this annotation was set
+                      #        or hidden.
+                      #
                       #    'action'
                       #
                       #        The type of action.  One of "set" or "hide".
+                      #
+                      #    'user_id'
+                      #
+                      #        The user ID of the user who set or hid this
+                      #        annotation value.
                       #
                       #    'key'
                       #
@@ -113,23 +130,6 @@ def view_history(request, account):
                       #    'value'
                       #
                       #        The annotation value.
-                      #
-                      #    'batch_number'
-                      #
-                      #        The batch number where this annotation was set
-                      #        or hidden.
-                      #
-                      #    'user_id'
-                      #
-                      #        The user ID of the user who set or hid this
-                      #        annotation value.
-                      #
-                      #    'timestamp'
-                      #
-                      #        The date and time at which the annotation value
-                      #        was set or hidden, as an integer number of
-                      #        seconds since midnight on the 1st of January,
-                      #        1970 ("unix time"), in UTC.
 
     for annotation in response['annotations']:
         key = annotation['key']

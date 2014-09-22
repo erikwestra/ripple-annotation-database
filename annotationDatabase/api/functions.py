@@ -8,6 +8,7 @@
     interface.
 """
 import datetime
+import operator
 import time
 
 import simplejson as json
@@ -611,8 +612,14 @@ def account_history(account):
                         If the annotation has been hidden, this will be the
                         'user_id' value for the user who hid this annotation.
 
-                Note that the 'hidden_at' and 'hidden_by' fields will only be
-                present if the annotation has been hidden within this batch.
+                Notes:
+
+                  * The 'hidden_at' and 'hidden_by' fields will only be present
+                    if the annotation has been hidden within this batch.
+
+                  * If the annotation was set to the same value multiple times,
+                    we only return the first time the annotation was set to
+                    that value.
 
         If an error occurred, we return a dictionary which looks like this:
 
@@ -659,7 +666,34 @@ def account_history(account):
             history_entry['hidden_at'] = hidden_at
             history_entry['hidden_by'] = annotation.hidden_by
 
-        entry['history'].append(history_entry)
+        if len(entry['history']) == 0:
+            # This is the first entry for this annotation -> remember it.
+            entry['history'].append(history_entry)
+        else:
+            # We have previous entries for this annotation.  If the last entry
+            # in this annotation's history has the same value as this (earlier)
+            # one, and the annotation value hasn't been hidden, then we replace
+            # the last (later) entry with this (earlier) one.  Otherwise, we
+            # remember both entries.  This gets rid of duplicate entries in the
+            # annotation history where the annotation is set to the same value
+            # multiple times.
+
+            is_duplicate = False # initially.
+
+            later_entry = entry['history'][-1]
+            if later_entry['value'] == history_entry['value']:
+                if not later_entry['hidden'] and not history_entry['hidden']:
+                    is_duplicate = True
+
+            if is_duplicate:
+                # This earlier entry is a duplicate of the later one -> replace
+                # the later entry with the earlier one.
+                entry['history'][-1] = history_entry
+            else:
+                # The entry isn't a duplicate -> add it to the list.
+                entry['history'].append(history_entry)
+
+    annotations.sort(key=operator.itemgetter("key"))
 
     return {'success'     : True,
             'annotations' : annotations}
