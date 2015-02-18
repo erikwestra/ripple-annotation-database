@@ -146,7 +146,7 @@ def upload(request):
             if cell.ctype == xlrd.XL_CELL_EMPTY:
                 return ""
             else:
-                return str(cell.value)
+                return str(cell.value.strip())
 
         if err_msg == None:
             # Extract the annotations from the spreadsheet.
@@ -197,7 +197,7 @@ def upload(request):
 #############################################################################
 
 def select_account(request):
-    """ Respond to the "/admin/annotations/view" URL.
+    """ Respond to the "/admin/annotations/accounts" URL.
 
         We display a list of accounts, and let the user select the account to
         view the annotations for.
